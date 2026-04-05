@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>carbell — 명함 제작 (모던)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --blue: #0D4E8B;
+  --black: #0D0D0F;
+  --white: #F5F5F7;
+  --sub: #888888;
+  --border: #EBEBED;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Pretendard',sans-serif; background:var(--white); padding:32px 20px 80px; color:var(--black); }
+.wrap { max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black); margin-bottom:2px; }
+.sub { font-size:12px; color:#aaa; }
+.stage { background:var(--white); padding:2px; border-radius:2px; display:flex; justify-content:center; overflow-x:auto; }
+
+/* 앞면 — 모던 미니멀 */
+.bc {
+  width:500px; height:280px; background:#fff; border-radius:2px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.06); padding:40px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  border:1px solid var(--border); box-sizing:border-box; overflow:hidden;
+  font-family:'Pretendard',sans-serif; flex-shrink:0;
+}
+.bc-top {
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.bc-logo {
+  font-size:20px; line-height:1; letter-spacing:-0.5px;
+  display:flex; align-items:baseline;
+}
+.bc-logo .t { font-weight:200; color:var(--sub); }
+.bc-logo .b { font-weight:700; color:var(--blue); margin-left:3px; }
+.bc-tagline {
+  font-size:8px; font-weight:300; letter-spacing:2px; text-transform:uppercase;
+  color:#bbb;
+}
+.bc-bottom {}
+.bc-name {
+  font-size:28px; font-weight:700; color:var(--black); letter-spacing:2px;
+  margin-bottom:4px;
+}
+.bc-title {
+  font-size:12px; font-weight:300; color:var(--sub); letter-spacing:0.3px;
+  margin-bottom:24px;
+}
+.bc-contact {
+  display:flex; gap:24px; font-size:11px; font-weight:300; color:#666;
+}
+.bc-contact span { letter-spacing:0.2px; }
+
+/* 뒷면 — 자동차 정비 테마 */
+.bc-back {
+  width:500px; height:280px; border-radius:2px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2); position:relative; overflow:hidden;
+  flex-shrink:0;
+  background: linear-gradient(145deg, #08101e 0%, #0a2040 30%, #0D4E8B 60%, #0a1a30 100%);
+}
+
+/* 폼 */
+.form { background:#fff; border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 12px rgba(0,0,0,0.06); border:1px solid var(--border); }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.input-group { display:flex; flex-direction:column; gap:3px; }
+.input-group label { font-size:10px; font-weight:700; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
+.input-group input { padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:'Pretendard',sans-serif; color:var(--black); outline:none; transition:border-color 0.15s; }
+.input-group input:focus { border-color:var(--blue); }
+.btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+.btn { width:100%; padding:13px; font-size:13px; font-weight:700; border:none; border-radius:10px; cursor:pointer; font-family:'Pretendard',sans-serif; transition:opacity 0.15s; }
+.btn:hover { opacity:0.82; }
+.btn-front { background:var(--black); color:#fff; }
+.btn-pdf { background:var(--blue); color:#fff; }
+#toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:600; z-index:1000; display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <a href="index.html" style="font-size: 11px; font-weight: 400; color: #999; text-decoration: none; letter-spacing: 1px;">← CI Center</a>
+    <h2 style="margin-top: 12px;">carbell 명함 제작</h2>
+    <p class="sub">모던 · 미니멀 — 자동차 정비 플랫폼</p>
+  </div>
+
+  <!-- 앞면 -->
+  <div>
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:10px;">명함 앞면</div>
+    <div class="stage" id="capture-front">
+      <div class="bc">
+        <div class="bc-top">
+          <div class="bc-logo">
+            <span class="t">car</span><span class="b">bell</span>
+          </div>
+          <div class="bc-tagline">Auto Care Platform</div>
+        </div>
+        <div class="bc-bottom">
+          <div class="bc-name" id="v-name">성함</div>
+          <div class="bc-title" id="v-title">직함</div>
+          <div class="bc-contact">
+            <span id="v-phone">010-0000-0000</span>
+            <span id="v-email">contact@carbell.co.kr</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뒷면 -->
+  <div>
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:10px;">명함 뒷면</div>
+    <div class="stage" id="capture-back">
+      <div class="bc-back" id="back-card">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- 배경 패턴 — 기어/렌치 모티프 -->
+          <defs>
+            <radialGradient id="glow1" cx="70%" cy="40%" r="50%">
+              <stop offset="0%" stop-color="#1a4a7a" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#0D4E8B" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="500" height="280" fill="url(#glow1)"/>
+
+          <!-- 기어 (우측) -->
+          <g transform="translate(380, 140)" opacity="0.08" stroke="white" stroke-width="1.5" fill="none">
+            <circle r="45"/>
+            <circle r="30"/>
+            <circle r="12"/>
+            <!-- 기어 이빨 -->
+            <line x1="0" y1="-45" x2="0" y2="-55"/>
+            <line x1="32" y1="-32" x2="39" y2="-39"/>
+            <line x1="45" y1="0" x2="55" y2="0"/>
+            <line x1="32" y1="32" x2="39" y2="39"/>
+            <line x1="0" y1="45" x2="0" y2="55"/>
+            <line x1="-32" y1="32" x2="-39" y2="39"/>
+            <line x1="-45" y1="0" x2="-55" y2="0"/>
+            <line x1="-32" y1="-32" x2="-39" y2="-39"/>
+          </g>
+
+          <!-- 기어 (좌측 작은) -->
+          <g transform="translate(100, 80)" opacity="0.05" stroke="white" stroke-width="1" fill="none">
+            <circle r="25"/>
+            <circle r="16"/>
+            <circle r="7"/>
+            <line x1="0" y1="-25" x2="0" y2="-32"/>
+            <line x1="18" y1="-18" x2="23" y2="-23"/>
+            <line x1="25" y1="0" x2="32" y2="0"/>
+            <line x1="18" y1="18" x2="23" y2="23"/>
+            <line x1="0" y1="25" x2="0" y2="32"/>
+            <line x1="-18" y1="18" x2="-23" y2="23"/>
+            <line x1="-25" y1="0" x2="-32" y2="0"/>
+            <line x1="-18" y1="-18" x2="-23" y2="-23"/>
+          </g>
+
+          <!-- 렌치 모티프 -->
+          <g transform="translate(250, 200) rotate(-30)" opacity="0.06" stroke="white" stroke-width="1.2" fill="none">
+            <path d="M-40,0 L40,0"/>
+            <circle cx="-48" cy="0" r="10"/>
+            <circle cx="48" cy="0" r="8"/>
+          </g>
+
+          <!-- 도로/라인 패턴 -->
+          <line x1="0" y1="260" x2="500" y2="260" stroke="white" stroke-width="0.5" opacity="0.06"/>
+          <line x1="0" y1="262" x2="500" y2="262" stroke="white" stroke-width="0.3" opacity="0.04"/>
+
+          <!-- 은은한 별 -->
+          <g fill="white" opacity="0.15">
+            <circle cx="30" cy="20" r="0.5"/><circle cx="120" cy="35" r="0.4"/>
+            <circle cx="200" cy="15" r="0.5"/><circle cx="310" cy="25" r="0.4"/>
+            <circle cx="450" cy="30" r="0.5"/><circle cx="60" cy="60" r="0.4"/>
+            <circle cx="170" cy="55" r="0.5"/><circle cx="280" cy="50" r="0.4"/>
+            <circle cx="400" cy="65" r="0.5"/><circle cx="480" cy="55" r="0.4"/>
+            <circle cx="40" cy="100" r="0.4"/><circle cx="150" cy="110" r="0.5"/>
+            <circle cx="260" cy="95" r="0.4"/><circle cx="350" cy="105" r="0.5"/>
+            <circle cx="470" cy="100" r="0.4"/>
+            <circle cx="80" cy="150" r="0.5"/><circle cx="200" cy="160" r="0.4"/>
+            <circle cx="330" cy="145" r="0.5"/><circle cx="430" cy="155" r="0.4"/>
+            <circle cx="50" cy="210" r="0.4"/><circle cx="180" cy="220" r="0.5"/>
+            <circle cx="300" cy="215" r="0.4"/><circle cx="420" cy="225" r="0.5"/>
+          </g>
+
+          <!-- 밝은 별 -->
+          <g fill="white">
+            <circle cx="90" cy="40" r="1.2" opacity="0.4"/>
+            <circle cx="350" cy="60" r="1.0" opacity="0.35"/>
+            <circle cx="460" cy="120" r="1.3" opacity="0.45"/>
+            <circle cx="130" cy="200" r="1.1" opacity="0.4"/>
+          </g>
+        </svg>
+
+        <!-- 로고 -->
+        <div style="position:absolute;bottom:30px;right:35px;font-family:'Pretendard',sans-serif;font-size:32px;line-height:1;letter-spacing:-1px;display:flex;align-items:baseline;">
+          <span style="font-weight:200;color:rgba(255,255,255,0.35);">car</span>
+          <span style="font-weight:700;color:rgba(255,255,255,0.85);margin-left:3px;">bell</span>
+        </div>
+        <!-- 태그라인 -->
+        <div style="position:absolute;top:25px;left:30px;font-size:8px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.2);">
+          Auto Care Platform
+        </div>
+        <!-- 웹사이트 -->
+        <div style="position:absolute;bottom:35px;left:35px;font-size:10px;font-weight:300;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">
+          carbell.co.kr
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 입력 폼 -->
+  <div class="form">
+    <div class="row">
+      <div class="input-group"><label>성명</label><input type="text" id="i-name" placeholder="홍길동"></div>
+      <div class="input-group"><label>직함</label><input type="text" id="i-title" placeholder="정비기술팀 / 매니저"></div>
+    </div>
+    <div class="row">
+      <div class="input-group"><label>휴대전화</label><input type="text" id="i-phone" placeholder="010-0000-0000"></div>
+      <div class="input-group"><label>이메일</label><input type="text" id="i-email" placeholder="contact@carbell.co.kr"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-front" id="btn-front">앞면 PNG</button>
+      <button class="btn btn-pdf" id="btn-pdf">PDF (앞+뒷면)</button>
+    </div>
+  </div>
+
+</div>
+<div id="toast">저장되었습니다!</div>
+
+<script>
+// 실시간 반영
+document.querySelectorAll('.form input').forEach(input => {
+  input.addEventListener('input', () => {
+    const name = document.getElementById('i-name').value || '성함';
+    const title = document.getElementById('i-title').value || '직함';
+    const phone = document.getElementById('i-phone').value || '010-0000-0000';
+    const email = document.getElementById('i-email').value || 'contact@carbell.co.kr';
+    document.getElementById('v-name').textContent = name;
+    document.getElementById('v-title').textContent = title;
+    document.getElementById('v-phone').textContent = phone;
+    document.getElementById('v-email').textContent = email;
+  });
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2000);
+}
+
+// PNG 다운로드
+document.getElementById('btn-front').addEventListener('click', async () => {
+  const el = document.querySelector('#capture-front .bc');
+  const canvas = await html2canvas(el, { scale: 4, backgroundColor: '#ffffff', width: 500, height: 280 });
+  const link = document.createElement('a');
+  link.download = `carbell_명함_앞면.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('앞면 저장 완료!');
+});
+
+// PDF 다운로드
+document.getElementById('btn-pdf').addEventListener('click', async () => {
+  const { jsPDF } = window.jspdf;
+  const name = document.getElementById('i-name').value || 'carbell';
+
+  const CW = 92, CH = 52, PW = 100, PH = 60;
+  const ox = (PW - CW) / 2, oy = (PH - CH) / 2;
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [PW, PH] });
+
+  // 앞면
+  const frontCanvas = await html2canvas(document.querySelector('#capture-front .bc'), {
+    scale: 15, backgroundColor: '#ffffff', width: 500, height: 280
+  });
+  pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
+
+  // 뒷면
+  pdf.addPage([PW, PH], 'landscape');
+  const backCanvas = await html2canvas(document.getElementById('back-card'), {
+    scale: 15, backgroundColor: null, width: 500, height: 280
+  });
+  pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
+
+  pdf.save(`carbell_명함_${name}.pdf`);
+  showToast('PDF 저장 완료!');
+});
+</script>
+</body>
+</html>

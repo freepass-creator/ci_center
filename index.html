@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CI Center</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: #fafafa;
+      color: #1a1a1a;
+      word-break: keep-all;
+    }
+
+    .header {
+      padding: 80px 48px 40px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 16px;
+    }
+    .header h2 {
+      font-size: 32px;
+      font-weight: 200;
+      letter-spacing: -1px;
+    }
+
+    .brand-section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 60px 48px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .brand-name-display {
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      margin-bottom: 40px;
+    }
+    .brand-name-display .light {
+      font-family: 'Pretendard', sans-serif;
+      font-weight: 200;
+      font-size: 48px;
+      letter-spacing: -1px;
+    }
+    .brand-name-display .bold {
+      font-family: 'Pretendard', sans-serif;
+      font-weight: 700;
+      font-size: 48px;
+      letter-spacing: -1px;
+      margin-left: 3px; /* CI 기준 간격 */
+    }
+
+    .ci-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+
+    .ci-block h4 {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    /* 색상 견본 */
+    .color-swatch {
+      width: 100%;
+      height: 60px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .color-info {
+      font-size: 13px;
+      font-weight: 300;
+      color: #555;
+      line-height: 1.8;
+    }
+    .color-info strong {
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    /* 폰트 견본 */
+    .font-sample {
+      margin-bottom: 8px;
+    }
+    .font-sample .w200 {
+      font-weight: 200;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      line-height: 1.4;
+    }
+    .font-sample .w700 {
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      line-height: 1.4;
+    }
+    .font-info {
+      font-size: 12px;
+      font-weight: 300;
+      color: #999;
+      margin-top: 8px;
+    }
+
+    /* 사용 예시 */
+    .usage-row {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .usage-item {
+      padding: 24px 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0;
+    }
+    .usage-item .light {
+      font-weight: 200;
+      letter-spacing: -0.5px;
+    }
+    .usage-item .bold {
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-left: 3px; /* CI 기준 간격 */
+    }
+    .usage-dark {
+      background: #1a1a1a;
+    }
+    .usage-light {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .usage-color {
+      color: #fff;
+    }
+
+    .usage-label {
+      font-size: 10px;
+      font-weight: 300;
+      color: #999;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* 대형 CI 로고 */
+    .ci-logo-wrap {
+      margin-top: 40px;
+    }
+    .ci-logo-wrap h4 {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 16px;
+    }
+    .ci-logo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .ci-logo-box {
+      padding: 48px 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ci-logo-box .l { font-weight: 200; letter-spacing: -1px; }
+    .ci-logo-box .b { font-weight: 700; letter-spacing: -1px; margin-left: 3px; }
+    .ci-logo-box--light { background: #fff; border: 1px solid rgba(0,0,0,0.06); }
+    .ci-logo-box--dark { background: #0D0D0F; }
+    .ci-logo-box--color { }
+
+    .btn-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 24px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-pdf:hover { opacity: 0.7; }
+
+    /* 제작 가이드 */
+    .guide {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .guide-block h4 {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+    .guide-block p {
+      font-size: 13px;
+      font-weight: 300;
+      color: #555;
+      line-height: 2;
+    }
+    .guide-block strong { font-weight: 500; color: #1a1a1a; }
+    .guide-block code {
+      font-size: 11px;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      word-break: break-all;
+    }
+    .guide-block a { text-decoration: none; }
+    .guide-block a:hover { text-decoration: underline; }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .spec-table th {
+      font-size: 10px;
+      font-weight: 400;
+      color: #999;
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .spec-table td {
+      padding: 8px;
+      font-weight: 300;
+      color: #555;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .spec-table strong { font-weight: 600; color: #1a1a1a; }
+    .dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 768px) {
+      .header, .brand-section { padding-left: 24px; padding-right: 24px; }
+      .ci-grid { grid-template-columns: 1fr; }
+      .brand-name-display .light,
+      .brand-name-display .bold { font-size: 36px; }
+      .usage-row { flex-direction: column; }
+      .guide { grid-template-columns: 1fr; }
+      .ci-logo-grid { grid-template-columns: 1fr; }
+      .spec-table { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CI Center</h1>
+  <h2>브랜드 아이덴티티 가이드</h2>
+</div>
+
+<!-- ============================================================
+     team jpk
+     ============================================================ -->
+<div class="brand-section">
+  <div class="brand-name-display">
+    <span class="light" style="color: #555;">team</span>
+    <span class="bold" style="color: #0D0D0F;">jpk</span>
+  </div>
+
+  <div class="ci-grid">
+    <div class="ci-block">
+      <h4>Primary Color</h4>
+      <div class="color-swatch" style="background: #0D0D0F;"></div>
+      <div class="color-info">
+        <strong>#0D0D0F</strong><br>
+        RGB 13, 13, 15<br>
+        Black
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Font</h4>
+      <div class="font-sample">
+        <div class="w200" style="color: #555;">team</div>
+        <div class="w700" style="color: #0D0D0F;">jpk</div>
+      </div>
+      <div class="font-info">
+        Pretendard<br>
+        Light 200 + Bold 700<br>
+        간격 3px
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Usage</h4>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div class="usage-item usage-dark">
+            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">team</span>
+            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">jpk</span>
+          </div>
+          <div class="usage-label">어두운 배경</div>
+        </div>
+        <div>
+          <div class="usage-item usage-light">
+            <span class="light" style="color: #555; font-size: 20px;">team</span>
+            <span class="bold" style="color: #0D0D0F; font-size: 20px;">jpk</span>
+          </div>
+          <div class="usage-label">밝은 배경</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="ci-logo-wrap">
+      <h4>Logo Variations</h4>
+      <div class="ci-logo-grid">
+        <div class="ci-logo-box ci-logo-box--light" id="jpk-light">
+          <span style="font-size: 64px;"><span class="l" style="color:#555;">team</span><span class="b" style="color:#0D0D0F;">jpk</span></span>
+        </div>
+        <div class="ci-logo-box ci-logo-box--dark" id="jpk-dark">
+          <span style="font-size: 64px;"><span class="l" style="color:rgba(255,255,255,0.4);">team</span><span class="b" style="color:rgba(255,255,255,0.9);">jpk</span></span>
+        </div>
+      </div>
+      <button class="btn-pdf" onclick="downloadCI('jpk')">PDF 다운로드 — teamjpk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     freepass mobility
+     ============================================================ -->
+<div class="brand-section">
+  <div class="brand-name-display">
+    <span class="bold" style="color: #0D4E8B;">freepass</span>
+    <span class="light" style="color: #555;">mobility</span>
+  </div>
+
+  <div class="ci-grid">
+    <div class="ci-block">
+      <h4>Primary Color</h4>
+      <div class="color-swatch" style="background: #0D4E8B;"></div>
+      <div class="color-info">
+        <strong>#0D4E8B</strong><br>
+        RGB 13, 78, 139<br>
+        Deep Blue
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Font</h4>
+      <div class="font-sample">
+        <div class="w700" style="color: #0D4E8B;">freepass</div>
+        <div class="w200" style="color: #555;">mobility</div>
+      </div>
+      <div class="font-info">
+        Pretendard<br>
+        Light 200 + Bold 700<br>
+        간격 3px
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Usage</h4>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div class="usage-item usage-dark">
+            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">freepass</span>
+            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">mobility</span>
+          </div>
+          <div class="usage-label">어두운 배경</div>
+        </div>
+        <div>
+          <div class="usage-item usage-light">
+            <span class="bold" style="color: #0D4E8B; font-size: 20px;">freepass</span>
+            <span class="light" style="color: #555; font-size: 20px;">mobility</span>
+          </div>
+          <div class="usage-label">밝은 배경</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="ci-logo-wrap">
+      <h4>Logo Variations</h4>
+      <div class="ci-logo-grid">
+        <div class="ci-logo-box ci-logo-box--light" id="fp-light">
+          <span style="font-size: 64px;"><span class="b" style="color:#0D4E8B;">freepass</span><span class="l" style="color:#555;">mobility</span></span>
+        </div>
+        <div class="ci-logo-box ci-logo-box--dark" id="fp-dark">
+          <span style="font-size: 64px;"><span class="b" style="color:rgba(255,255,255,0.9);">freepass</span><span class="l" style="color:rgba(255,255,255,0.4);">mobility</span></span>
+        </div>
+      </div>
+      <button class="btn-pdf" onclick="downloadCI('fp')">PDF 다운로드 — freepassmobility</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     car bell
+     ============================================================ -->
+<div class="brand-section">
+  <div class="brand-name-display">
+    <span class="light" style="color: #555;">car</span>
+    <span class="bold" style="color: #0D4E8B;">bell</span>
+  </div>
+
+  <div class="ci-grid">
+    <div class="ci-block">
+      <h4>Primary Color</h4>
+      <div class="color-swatch" style="background: #0D4E8B;"></div>
+      <div class="color-info">
+        <strong>#0D4E8B</strong><br>
+        RGB 13, 78, 139<br>
+        Deep Blue
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Font</h4>
+      <div class="font-sample">
+        <div class="w200" style="color: #555;">ca</div>
+        <div class="w700" style="color: #0D4E8B;">bell</div>
+      </div>
+      <div class="font-info">
+        Pretendard<br>
+        Light 200 + Bold 700<br>
+        간격 3px
+      </div>
+    </div>
+    <div class="ci-block">
+      <h4>Usage</h4>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div class="usage-item usage-dark">
+            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">ca</span>
+            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">bell</span>
+          </div>
+          <div class="usage-label">어두운 배경</div>
+        </div>
+        <div>
+          <div class="usage-item usage-light">
+            <span class="light" style="color: #555; font-size: 20px;">ca</span>
+            <span class="bold" style="color: #0D4E8B; font-size: 20px;">bell</span>
+          </div>
+          <div class="usage-label">밝은 배경</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="ci-logo-wrap">
+      <h4>Logo Variations</h4>
+      <div class="ci-logo-grid">
+        <div class="ci-logo-box ci-logo-box--light" id="cb-light">
+          <span style="font-size: 64px;"><span class="l" style="color:#555;">car</span><span class="b" style="color:#0D4E8B;">bell</span></span>
+        </div>
+        <div class="ci-logo-box ci-logo-box--dark" id="cb-dark">
+          <span style="font-size: 64px;"><span class="l" style="color:rgba(255,255,255,0.4);">car</span><span class="b" style="color:rgba(255,255,255,0.9);">bell</span></span>
+        </div>
+      </div>
+      <button class="btn-pdf" onclick="downloadCI('cb')">PDF 다운로드 — carbell</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CI 제작 가이드
+     ============================================================ -->
+<div class="brand-section">
+  <div class="brand-name-display">
+    <span class="light" style="color: #999; font-size: 32px;">CI</span>
+    <span class="bold" style="color: #1a1a1a; font-size: 32px;">Guide</span>
+  </div>
+
+  <div class="guide">
+    <div class="guide-block">
+      <h4>Font</h4>
+      <p><strong>Pretendard</strong><br>
+      무료 오픈소스 — <a href="https://cactus.tistory.com/306" target="_blank" style="color:#0D4E8B;">다운로드</a><br>
+      웹: <code>https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css</code></p>
+    </div>
+
+    <div class="guide-block">
+      <h4>Weight Rule</h4>
+      <p>메인 브랜드명 = <strong>700 (Bold)</strong><br>
+      보조 텍스트 = <strong>200 (Light)</strong><br>
+      메인과 보조 사이 간격 = <strong>3px</strong></p>
+    </div>
+
+    <div class="guide-block">
+      <h4>Color Spec</h4>
+      <table class="spec-table">
+        <tr><th>브랜드</th><th>메인 컬러</th><th>HEX</th><th>RGB</th><th>보조 텍스트</th></tr>
+        <tr><td>team<strong>jpk</strong></td><td><span class="dot" style="background:#0D0D0F;"></span></td><td>#0D0D0F</td><td>13, 13, 15</td><td>#555555</td></tr>
+        <tr><td><strong>freepass</strong>mobility</td><td><span class="dot" style="background:#0D4E8B;"></span></td><td>#0D4E8B</td><td>13, 78, 139</td><td>#555555</td></tr>
+        <tr><td>car<strong>bell</strong></td><td><span class="dot" style="background:#0D4E8B;"></span></td><td>#0D4E8B</td><td>13, 78, 139</td><td>#555555</td></tr>
+      </table>
+    </div>
+
+    <div class="guide-block">
+      <h4>Dark Background</h4>
+      <p>메인 브랜드명 = <strong>rgba(255,255,255,0.9)</strong><br>
+      보조 텍스트 = <strong>rgba(255,255,255,0.4)</strong><br>
+      배경색 = <strong>#0D0D0F</strong> 또는 자유</p>
+    </div>
+
+    <div class="guide-block">
+      <h4>Minimum Size</h4>
+      <p>인쇄: 최소 높이 <strong>8mm</strong><br>
+      화면: 최소 <strong>14px</strong><br>
+      여백: 로고 높이의 <strong>50%</strong> 이상 확보</p>
+    </div>
+
+    <div class="guide-block">
+      <h4>Don'ts</h4>
+      <p>두께 변경 금지 (200/700 고정)<br>
+      색상 임의 변경 금지<br>
+      간격(3px) 변경 금지<br>
+      기울임·그림자·외곽선 금지</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     명함 제작
+     ============================================================ -->
+<div class="brand-section">
+  <div class="brand-name-display">
+    <span class="light" style="color: #999; font-size: 32px;">Business</span>
+    <span class="bold" style="color: #1a1a1a; font-size: 32px;">Card</span>
+  </div>
+  <p style="font-size: 14px; font-weight: 300; color: #555; line-height: 1.8; margin-bottom: 32px;">
+    CI 규격에 맞춘 명함을 직접 만들고 PDF로 다운로드할 수 있습니다.
+  </p>
+  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+    <a href="teamjpk_명함제작.html" class="btn-pdf" style="text-decoration: none;">
+      클래식 명함 — 전 브랜드 →
+    </a>
+    <a href="carbell_명함제작.html" class="btn-pdf" style="text-decoration: none; background: #0D4E8B;">
+      모던 명함 — carbell →
+    </a>
+  </div>
+</div>
+
+<div style="padding: 40px 48px; max-width: 1080px; margin: 0 auto; border-top: 1px solid rgba(0,0,0,0.06);">
+  <p style="font-size: 10px; color: #999; font-weight: 300;">© 2026 TEAMJPK. CI Center — Internal Use Only.</p>
+</div>
+
+<script>
+async function downloadCI(brand) {
+  const configs = {
+    jpk: { ids: ['jpk-light','jpk-dark'], name: 'teamjpk' },
+    fp:  { ids: ['fp-light','fp-dark'], name: 'freepassmobility' },
+    cb:  { ids: ['cb-light','cb-dark'], name: 'carbell' },
+  };
+  const cfg = configs[brand];
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  for (let i = 0; i < cfg.ids.length; i++) {
+    const el = document.getElementById(cfg.ids[i]);
+    const canvas = await html2canvas(el, { scale: 4, backgroundColor: null });
+    const imgData = canvas.toDataURL('image/png');
+    if (i > 0) pdf.addPage();
+    const w = 297, h = (canvas.height / canvas.width) * w;
+    const y = (210 - h) / 2;
+    pdf.addImage(imgData, 'PNG', 0, y > 0 ? y : 0, w, h);
+  }
+  pdf.save(`CI_${cfg.name}.pdf`);
+}
+</script>
+
+</body>
+</html>

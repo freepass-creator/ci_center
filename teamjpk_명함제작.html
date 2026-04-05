@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>teamjpk — 명함 제작</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --black:  #0D0D0F;
+  --navy:   #0C2550;
+  --white:  #F5F5F7;
+  --sub:    #555555;
+  --border: #EBEBED;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Pretendard',sans-serif; background:var(--white); padding:32px 20px 80px; color:var(--black); }
+.wrap { max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black); margin-bottom:2px; }
+.sub { font-size:12px; color:#aaa; }
+.stage { background:var(--white); padding:2px; border-radius:2px; display:flex; justify-content:center; overflow-x:auto; }
+
+/* 앞면 명함 */
+.bc {
+  width:500px; height:280px; background:#fff; border-radius:2px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.06); padding:30px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  border:1px solid var(--border); box-sizing:border-box; overflow:hidden;
+  font-family:'Pretendard',sans-serif; flex-shrink:0;
+}
+.bc-logo {
+  align-self:flex-end; transform:scale(0.8); transform-origin:right top;
+  margin-top:-4px; font-size:36px; line-height:1; letter-spacing:-1px; white-space:nowrap;
+  display:flex; align-items:baseline;
+}
+.bc-logo .t { font-weight:200; color:var(--sub); }
+.bc-logo .b { font-weight:700; color:var(--black); margin-left:3px; }
+.bc-bottom { display:flex; flex-direction:column; }
+.bc-user { display:flex; flex-direction:column; gap:1px; margin-bottom:18px; }
+.bc-name { font-size:22px; font-weight:700; color:var(--black); letter-spacing:5px; }
+.bc-title { font-size:14px; font-weight:400; color:var(--sub); letter-spacing:0.3px; }
+.bc-co-section { font-size:13px; line-height:1.4; color:var(--black); font-weight:300; }
+.bc-co-name { font-weight:600; font-size:14px; margin-bottom:3px; display:block; letter-spacing:-0.2px; }
+.bc-detail { margin-top:2px; color:var(--sub); }
+.bc-web { font-weight:700; font-size:13px; color:var(--black); margin-top:3px; line-height:1; }
+
+/* 뒷면 명함 */
+.bc-back {
+  width:500px; height:280px; background:linear-gradient(135deg, #0D0D0F 0%, #0f1a2e 40%, #142540 70%, #0D0D0F 100%); border-radius:2px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2); position:relative; overflow:hidden;
+  flex-shrink:0;
+}
+.zodiac-label {
+  position:absolute; top:18px; left:20px;
+  font-family:'Pretendard',sans-serif; font-size:9px; font-weight:400;
+  color:rgba(255,255,255,0.28); letter-spacing:3px; text-transform:uppercase;
+}
+
+/* 폼 */
+.form { background:#fff; border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 12px rgba(0,0,0,0.06); border:1px solid var(--border); }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.input-group { display:flex; flex-direction:column; gap:3px; }
+.input-group label { font-size:10px; font-weight:700; color:#aaa; letter-spacing:1px; text-transform:uppercase; }
+.input-group input { padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:'Pretendard',sans-serif; color:var(--black); outline:none; transition:border-color 0.15s; }
+.input-group input:focus { border-color:var(--navy); }
+.btn-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; }
+.btn { width:100%; padding:13px; font-size:13px; font-weight:700; border:none; border-radius:10px; cursor:pointer; font-family:'Pretendard',sans-serif; transition:opacity 0.15s; }
+.btn:hover { opacity:0.82; }
+.btn-front { background:var(--black); color:#fff; }
+.btn-back  { background:var(--black); color:#fff; }
+.btn-pdf   { background:var(--navy); color:#fff; }
+#toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:600; z-index:1000; display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <a href="index.html" style="font-size: 11px; font-weight: 400; color: #999; text-decoration: none; letter-spacing: 1px;">← CI Center</a>
+    <h2 style="margin-top: 12px;">명함 제작</h2>
+    <p class="sub">소속을 선택하고 정보를 입력하세요</p>
+    <div style="margin-top: 12px;">
+      <select id="brand-select" style="padding:10px 16px; border:1px solid var(--border); border-radius:8px; font-family:'Pretendard',sans-serif; font-size:14px; font-weight:500; color:var(--black); outline:none; cursor:pointer; width:100%;">
+        <option value="jpk">teamjpk</option>
+        <option value="fp">freepassmobility</option>
+        <option value="cb">carbell</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 앞면 -->
+  <div>
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:10px;">명함 앞면</div>
+    <div class="stage" id="capture-front">
+      <div class="bc">
+        <div class="bc-logo">
+          <span class="t">team</span><span class="b">jpk</span>
+        </div>
+        <div class="bc-bottom">
+          <div class="bc-user">
+            <div class="bc-name" id="v-name">성함</div>
+            <div class="bc-title" id="v-title">직함</div>
+          </div>
+          <div class="bc-co-section">
+            <span class="bc-co-name">팀제이피케이 주식회사</span>
+            <div id="v-addr">경기도 김포시 아라육로152번길 45, 국민차매매단지 229호</div>
+            <div class="bc-detail">
+              <div id="v-phone">010-0000-0000</div>
+              <div id="v-email">contact@teamjpk.com</div>
+            </div>
+            <div class="bc-web">teamjpk.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 뒷면 -->
+  <div>
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:10px;">명함 뒷면 — <span id="zodiac-title" style="color:var(--navy);">입사일자를 입력해주세요</span></div>
+    <div class="stage" id="capture-back">
+      <div class="bc-back" id="back-card">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="neb1" cx="65%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="#1a2a4a" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#0D0D0F" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="neb2" cx="25%" cy="70%" r="45%">
+              <stop offset="0%" stop-color="#0a1830" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#0D0D0F" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="500" height="280" fill="url(#neb1)"/>
+          <rect width="500" height="280" fill="url(#neb2)"/>
+          <g fill="white" opacity="0.18">
+            <circle cx="32" cy="14" r="0.4"/><circle cx="78" cy="28" r="0.3"/><circle cx="124" cy="8" r="0.4"/>
+            <circle cx="172" cy="22" r="0.3"/><circle cx="218" cy="12" r="0.4"/><circle cx="265" cy="30" r="0.3"/>
+            <circle cx="312" cy="8" r="0.4"/><circle cx="358" cy="24" r="0.3"/><circle cx="405" cy="14" r="0.4"/>
+            <circle cx="452" cy="28" r="0.3"/><circle cx="485" cy="10" r="0.4"/><circle cx="18" cy="52" r="0.3"/>
+            <circle cx="64" cy="44" r="0.4"/><circle cx="108" cy="58" r="0.3"/><circle cx="155" cy="46" r="0.4"/>
+            <circle cx="202" cy="56" r="0.3"/><circle cx="248" cy="42" r="0.4"/><circle cx="295" cy="54" r="0.3"/>
+            <circle cx="342" cy="44" r="0.4"/><circle cx="388" cy="58" r="0.3"/><circle cx="435" cy="46" r="0.4"/>
+            <circle cx="478" cy="56" r="0.3"/><circle cx="28" cy="84" r="0.4"/><circle cx="74" cy="78" r="0.3"/>
+            <circle cx="120" cy="88" r="0.4"/><circle cx="165" cy="76" r="0.3"/><circle cx="210" cy="86" r="0.4"/>
+            <circle cx="255" cy="78" r="0.3"/><circle cx="300" cy="88" r="0.4"/><circle cx="345" cy="76" r="0.3"/>
+            <circle cx="390" cy="86" r="0.4"/><circle cx="435" cy="78" r="0.3"/><circle cx="478" cy="88" r="0.4"/>
+            <circle cx="14" cy="114" r="0.3"/><circle cx="58" cy="108" r="0.4"/><circle cx="102" cy="118" r="0.3"/>
+            <circle cx="148" cy="106" r="0.4"/><circle cx="192" cy="116" r="0.3"/><circle cx="238" cy="108" r="0.4"/>
+            <circle cx="282" cy="118" r="0.3"/><circle cx="328" cy="106" r="0.4"/><circle cx="372" cy="116" r="0.3"/>
+            <circle cx="418" cy="108" r="0.4"/><circle cx="462" cy="118" r="0.3"/><circle cx="492" cy="106" r="0.4"/>
+            <circle cx="22" cy="144" r="0.3"/><circle cx="68" cy="138" r="0.4"/><circle cx="112" cy="148" r="0.3"/>
+            <circle cx="158" cy="136" r="0.4"/><circle cx="202" cy="146" r="0.3"/><circle cx="248" cy="138" r="0.4"/>
+            <circle cx="292" cy="148" r="0.3"/><circle cx="338" cy="136" r="0.4"/><circle cx="382" cy="146" r="0.3"/>
+            <circle cx="428" cy="138" r="0.4"/><circle cx="472" cy="148" r="0.3"/>
+            <circle cx="18" cy="172" r="0.4"/><circle cx="62" cy="166" r="0.3"/><circle cx="108" cy="176" r="0.4"/>
+            <circle cx="152" cy="164" r="0.3"/><circle cx="198" cy="174" r="0.4"/><circle cx="242" cy="166" r="0.3"/>
+            <circle cx="288" cy="176" r="0.4"/><circle cx="332" cy="164" r="0.3"/><circle cx="378" cy="174" r="0.4"/>
+            <circle cx="422" cy="166" r="0.3"/><circle cx="468" cy="176" r="0.4"/>
+            <circle cx="25" cy="202" r="0.3"/><circle cx="70" cy="196" r="0.4"/><circle cx="115" cy="206" r="0.3"/>
+            <circle cx="160" cy="194" r="0.4"/><circle cx="205" cy="204" r="0.3"/><circle cx="250" cy="196" r="0.4"/>
+            <circle cx="295" cy="206" r="0.3"/><circle cx="340" cy="194" r="0.4"/><circle cx="385" cy="204" r="0.3"/>
+            <circle cx="430" cy="196" r="0.4"/><circle cx="475" cy="206" r="0.3"/>
+            <circle cx="30" cy="232" r="0.4"/><circle cx="75" cy="226" r="0.3"/><circle cx="120" cy="238" r="0.4"/>
+            <circle cx="165" cy="224" r="0.3"/><circle cx="210" cy="236" r="0.4"/><circle cx="255" cy="226" r="0.3"/>
+            <circle cx="300" cy="238" r="0.4"/><circle cx="345" cy="224" r="0.3"/><circle cx="390" cy="236" r="0.4"/>
+            <circle cx="435" cy="226" r="0.3"/><circle cx="480" cy="238" r="0.4"/>
+            <circle cx="40" cy="262" r="0.3"/><circle cx="85" cy="272" r="0.4"/><circle cx="130" cy="258" r="0.3"/>
+            <circle cx="175" cy="268" r="0.4"/><circle cx="220" cy="258" r="0.3"/><circle cx="265" cy="272" r="0.4"/>
+            <circle cx="310" cy="258" r="0.3"/><circle cx="355" cy="268" r="0.4"/><circle cx="400" cy="258" r="0.3"/>
+            <circle cx="445" cy="272" r="0.4"/><circle cx="490" cy="262" r="0.3"/>
+          </g>
+          <g fill="white">
+            <circle cx="44" cy="32" r="1.4" opacity="0.55"/><circle cx="312" cy="18" r="1.2" opacity="0.5"/>
+            <circle cx="188" cy="52" r="1.5" opacity="0.6"/><circle cx="455" cy="42" r="1.3" opacity="0.5"/>
+            <circle cx="22" cy="168" r="1.4" opacity="0.55"/><circle cx="478" cy="195" r="1.2" opacity="0.5"/>
+            <circle cx="145" cy="235" r="1.5" opacity="0.6"/><circle cx="388" cy="255" r="1.3" opacity="0.5"/>
+            <circle cx="72" cy="110" r="1.2" opacity="0.45"/><circle cx="435" cy="130" r="1.4" opacity="0.5"/>
+          </g>
+          <g fill="white" opacity="0.7">
+            <circle cx="488" cy="15" r="1.8"/><circle cx="8" cy="255" r="1.6"/><circle cx="252" cy="270" r="1.5"/>
+          </g>
+          <!-- 은은한 중간 별 추가 -->
+          <g fill="white">
+            <circle cx="135" cy="125" r="0.9" opacity="0.35"/>
+            <circle cx="320" cy="70" r="0.8" opacity="0.3"/>
+            <circle cx="410" cy="110" r="0.7" opacity="0.25"/>
+            <circle cx="55" cy="140" r="0.9" opacity="0.35"/>
+            <circle cx="240" cy="155" r="0.8" opacity="0.3"/>
+            <circle cx="480" cy="85" r="0.7" opacity="0.25"/>
+            <circle cx="170" cy="200" r="0.9" opacity="0.35"/>
+            <circle cx="330" cy="175" r="0.8" opacity="0.3"/>
+            <circle cx="95" cy="240" r="0.7" opacity="0.25"/>
+            <circle cx="420" cy="195" r="0.9" opacity="0.35"/>
+            <circle cx="260" cy="115" r="0.8" opacity="0.3"/>
+            <circle cx="40" cy="90" r="0.7" opacity="0.25"/>
+            <circle cx="365" cy="140" r="0.9" opacity="0.35"/>
+            <circle cx="195" cy="85" r="0.8" opacity="0.3"/>
+            <circle cx="450" cy="240" r="0.7" opacity="0.25"/>
+            <circle cx="115" cy="165" r="0.8" opacity="0.3"/>
+            <circle cx="295" cy="245" r="0.9" opacity="0.35"/>
+            <circle cx="380" cy="50" r="0.7" opacity="0.25"/>
+            <circle cx="225" cy="210" r="0.8" opacity="0.3"/>
+            <circle cx="490" cy="135" r="0.9" opacity="0.35"/>
+          </g>
+          <!-- 실제 별 (십자 광망 포함) -->
+          <g opacity="0.9">
+            <circle cx="420" cy="45" r="2.2" fill="white"/>
+            <line x1="420" y1="38" x2="420" y2="52" stroke="white" stroke-width="0.4" opacity="0.5"/>
+            <line x1="413" y1="45" x2="427" y2="45" stroke="white" stroke-width="0.4" opacity="0.5"/>
+          </g>
+          <g opacity="0.7">
+            <circle cx="85" cy="180" r="1.8" fill="white"/>
+            <line x1="85" y1="174" x2="85" y2="186" stroke="white" stroke-width="0.3" opacity="0.4"/>
+            <line x1="79" y1="180" x2="91" y2="180" stroke="white" stroke-width="0.3" opacity="0.4"/>
+          </g>
+          <g opacity="0.8">
+            <circle cx="350" cy="220" r="2.0" fill="white"/>
+            <line x1="350" y1="214" x2="350" y2="226" stroke="white" stroke-width="0.35" opacity="0.45"/>
+            <line x1="344" y1="220" x2="356" y2="220" stroke="white" stroke-width="0.35" opacity="0.45"/>
+          </g>
+          <g opacity="0.6">
+            <circle cx="150" cy="60" r="1.6" fill="white"/>
+            <line x1="150" y1="55" x2="150" y2="65" stroke="white" stroke-width="0.3" opacity="0.35"/>
+            <line x1="145" y1="60" x2="155" y2="60" stroke="white" stroke-width="0.3" opacity="0.35"/>
+          </g>
+          <g opacity="0.75">
+            <circle cx="470" cy="160" r="1.9" fill="white"/>
+            <line x1="470" y1="154" x2="470" y2="166" stroke="white" stroke-width="0.35" opacity="0.4"/>
+            <line x1="464" y1="160" x2="476" y2="160" stroke="white" stroke-width="0.35" opacity="0.4"/>
+          </g>
+        </svg>
+        <canvas id="zodiac-canvas" style="position:absolute;inset:0;width:100%;height:100%;" width="500" height="280"></canvas>
+        <div class="zodiac-label" id="zodiac-label">— 입사일자 입력 —</div>
+        <div class="zodiac-label" id="hire-date-label" style="left:auto;right:20px;text-align:right;"></div>
+        <div style="position:absolute;bottom:27px;right:27px;font-family:'Pretendard',sans-serif;font-size:28px;line-height:1;letter-spacing:-1px;white-space:nowrap;display:flex;align-items:baseline;">
+          <span style="font-weight:200;color:rgba(255,255,255,0.38);">team</span>
+          <span style="font-weight:700;color:rgba(255,255,255,0.88);margin-left:3px;">jpk</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 입력 폼 -->
+  <div class="form">
+    <div class="row">
+      <div class="input-group"><label>성명</label><input type="text" id="i-name" placeholder="홍길동"></div>
+      <div class="input-group"><label>입사일자</label><input type="date" id="i-birth"></div>
+    </div>
+    <div class="input-group"><label>직함</label><input type="text" id="i-title" placeholder="운영지원팀 / 선임매니저"></div>
+    <div class="input-group"><label>휴대전화</label><input type="text" id="i-phone" placeholder="010-0000-0000"></div>
+    <div class="input-group"><label>이메일</label><input type="text" id="i-email" placeholder="contact@teamjpk.com"></div>
+    <div class="input-group"><label>주소</label><input type="text" id="i-addr" placeholder="경기도 김포시 아라육로152번길 45"></div>
+    <div class="btn-row">
+      <button class="btn btn-front" id="btn-front">앞면 PNG</button>
+      <button class="btn btn-back" id="btn-back">뒷면 PNG</button>
+      <button class="btn btn-pdf" id="btn-pdf">📄 PDF (앞+뒷면)</button>
+    </div>
+  </div>
+
+</div>
+<div id="toast">저장되었습니다!</div>
+
+<script>
+/* ── 브랜드 설정 ── */
+const BRANDS = {
+  jpk: {
+    light: 'team', bold: 'jpk',
+    color: '#0D0D0F', sub: '#555555',
+    darkBold: 'rgba(255,255,255,0.88)', darkLight: 'rgba(255,255,255,0.38)',
+    company: '팀제이피케이 주식회사',
+    addr: '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호',
+    web: 'teamjpk.com',
+    email: 'contact@teamjpk.com',
+    phone: '010-0000-0000',
+    backBg: '#0D0D0F',
+  },
+  fp: {
+    bold: 'freepass', light: 'mobility',
+    color: '#0D4E8B', sub: '#555555',
+    darkBold: 'rgba(255,255,255,0.88)', darkLight: 'rgba(255,255,255,0.38)',
+    company: '프리패스모빌리티 주식회사',
+    addr: '서울시 강서구 양천로 53길 30, 서서울모터리움 1004호',
+    web: 'freepassmobility.com',
+    email: 'freepassmobility@gmail.com',
+    phone: '02-6956-8835',
+    backBg: '#0D4E8B',
+  },
+  cb: {
+    light: 'car', bold: 'bell',
+    color: '#0D4E8B', sub: '#555555',
+    darkBold: 'rgba(255,255,255,0.88)', darkLight: 'rgba(255,255,255,0.38)',
+    company: '카벨 주식회사',
+    addr: '서울시 강서구 양천로 53길 30, 서서울모터리움 1004호',
+    web: 'carbell.co.kr',
+    email: 'contact@carbell.co.kr',
+    phone: '02-0000-0000',
+    backBg: '#0D4E8B',
+  },
+};
+
+function switchBrand(key) {
+  const b = BRANDS[key];
+  // 앞면 로고 (jpk: light+bold, fp/cb: bold+light)
+  const logoEl = document.querySelector('.bc-logo');
+  if (key === 'fp') {
+    // freepass(bold) + mobility(light)
+    logoEl.innerHTML = `<span class="b" style="color:${b.color}">${b.bold}</span><span class="t" style="color:${b.sub};margin-left:3px;">${b.light}</span>`;
+  } else {
+    // jpk: team(light) + jpk(bold) / cb: car(light) + bell(bold)
+    logoEl.innerHTML = `<span class="t" style="color:${b.sub}">${b.light}</span><span class="b" style="color:${b.color};margin-left:3px;">${b.bold}</span>`;
+  }
+  // 앞면 회사정보
+  document.querySelector('.bc-co-name').textContent = b.company;
+  document.getElementById('v-addr').textContent = b.addr;
+  document.querySelector('.bc-web').textContent = b.web;
+  document.getElementById('v-email').textContent = b.email;
+  document.getElementById('v-phone').textContent = b.phone;
+  // 앞면 placeholder
+  document.getElementById('i-email').placeholder = b.email;
+  document.getElementById('i-addr').placeholder = b.addr;
+  // 뒷면 로고
+  const backLogo = document.querySelector('#back-card > div:last-child');
+  if (backLogo) {
+    if (key === 'fp') {
+      backLogo.innerHTML = `<span style="font-weight:700;color:${b.darkBold};">${b.bold}</span><span style="font-weight:200;color:${b.darkLight};margin-left:3px;">${b.light}</span>`;
+    } else {
+      backLogo.innerHTML = `<span style="font-weight:200;color:${b.darkLight};">${b.light}</span><span style="font-weight:700;color:${b.darkBold};margin-left:3px;">${b.bold}</span>`;
+    }
+  }
+  // 뒷면 배경 — 단색이 아니라 밤하늘 느낌 그라디언트
+  if (b.backBg === '#0D0D0F') {
+    document.getElementById('back-card').style.background = 'linear-gradient(135deg, #0D0D0F 0%, #0f1a2e 40%, #142540 70%, #0D0D0F 100%)';
+  } else {
+    document.getElementById('back-card').style.background = 'linear-gradient(135deg, #08101e 0%, #0D3060 35%, #0D4E8B 60%, #0a1a30 100%)';
+  }
+  // SVG nebula 색상
+  const s1 = document.querySelector('#neb1 stop');
+  const s2 = document.querySelector('#neb2 stop');
+  if (b.backBg === '#0D0D0F') {
+    if(s1) s1.setAttribute('stop-color', '#1a2a4a');
+    if(s2) s2.setAttribute('stop-color', '#0a1830');
+  } else {
+    if(s1) s1.setAttribute('stop-color', '#1a3a6a');
+    if(s2) s2.setAttribute('stop-color', '#0a2850');
+  }
+  // CSS 변수
+  document.documentElement.style.setProperty('--navy', b.color);
+}
+
+document.getElementById('brand-select').addEventListener('change', function() {
+  switchBrand(this.value);
+});
+
+const ZODIAC = {
+  aries:       { name:'양자리',     en:'Aries',        stars:[[162,115],[200,92],[242,102],[290,84],[318,100]], lines:[[0,1],[1,2],[2,3],[3,4]], bright:[0,2,4] },
+  taurus:      { name:'황소자리',   en:'Taurus',       stars:[[158,148],[192,128],[232,118],[272,128],[308,112],[232,162],[195,178],[165,195]], lines:[[0,1],[1,2],[2,3],[3,4],[2,5],[5,1],[5,6],[6,7]], bright:[2,4,5] },
+  gemini:      { name:'쌍둥이자리', en:'Gemini',       stars:[[172,78],[212,72],[170,118],[215,112],[168,158],[213,152],[170,195],[215,190]], lines:[[0,2],[2,4],[4,6],[1,3],[3,5],[5,7],[0,1],[6,7]], bright:[0,1,6,7] },
+  cancer:      { name:'게자리',     en:'Cancer',       stars:[[235,82],[192,130],[278,130],[235,168],[192,205],[278,205]], lines:[[0,1],[0,2],[1,3],[2,3],[3,4],[3,5]], bright:[0,3] },
+  leo:         { name:'사자자리',   en:'Leo',          stars:[[162,152],[178,120],[202,100],[228,112],[238,142],[212,158],[292,132],[325,158],[296,188]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[3,6],[6,7],[7,8],[6,8]], bright:[0,2,6] },
+  virgo:       { name:'처녀자리',   en:'Virgo',        stars:[[192,68],[222,98],[196,135],[230,162],[272,148],[312,120],[308,165],[258,192],[216,202]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[3,7],[7,8],[2,8]], bright:[0,4,5] },
+  libra:       { name:'천칭자리',   en:'Libra',        stars:[[192,132],[248,108],[308,132],[248,168],[212,195],[288,195]], lines:[[0,1],[1,2],[0,3],[2,3],[1,3],[3,4],[3,5]], bright:[1,3] },
+  scorpio:     { name:'전갈자리',   en:'Scorpius',     stars:[[168,90],[195,110],[222,105],[252,98],[282,108],[302,132],[312,158],[298,182],[278,198],[258,208],[242,224]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10]], bright:[0,5,8] },
+  sagittarius: { name:'사수자리',   en:'Sagittarius',  stars:[[172,142],[205,120],[242,105],[272,125],[258,158],[212,162],[295,162],[310,192],[272,198]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[3,6],[6,7],[7,8],[2,5]], bright:[2,3,6] },
+  capricorn:   { name:'염소자리',   en:'Capricorn',    stars:[[172,108],[215,90],[258,100],[292,118],[298,152],[272,178],[238,188],[198,178],[172,152],[188,128]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,0],[0,9],[9,2]], bright:[0,3,6] },
+  aquarius:    { name:'물병자리',   en:'Aquarius',     stars:[[172,118],[210,102],[248,118],[285,102],[322,118],[182,152],[220,168],[258,152],[295,168],[332,152]], lines:[[0,1],[1,2],[2,3],[3,4],[5,6],[6,7],[7,8],[8,9],[0,5],[2,7],[4,9],[1,6],[3,8]], bright:[1,3,6,8] },
+  pisces:      { name:'물고기자리', en:'Pisces',       stars:[[175,102],[198,82],[228,76],[255,92],[245,118],[218,122],[282,142],[302,122],[328,116],[342,138],[332,162],[308,167],[248,138]], lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[6,7],[7,8],[8,9],[9,10],[10,11],[11,6],[5,12],[12,6]], bright:[2,8,6] }
+};
+
+function getZodiac(m, d) {
+  if((m==3&&d>=21)||(m==4&&d<=19)) return 'aries';
+  if((m==4&&d>=20)||(m==5&&d<=20)) return 'taurus';
+  if((m==5&&d>=21)||(m==6&&d<=20)) return 'gemini';
+  if((m==6&&d>=21)||(m==7&&d<=22)) return 'cancer';
+  if((m==7&&d>=23)||(m==8&&d<=22)) return 'leo';
+  if((m==8&&d>=23)||(m==9&&d<=22)) return 'virgo';
+  if((m==9&&d>=23)||(m==10&&d<=22)) return 'libra';
+  if((m==10&&d>=23)||(m==11&&d<=21)) return 'scorpio';
+  if((m==11&&d>=22)||(m==12&&d<=21)) return 'sagittarius';
+  if((m==12&&d>=22)||(m==1&&d<=19)) return 'capricorn';
+  if((m==1&&d>=20)||(m==2&&d<=18)) return 'aquarius';
+  return 'pisces';
+}
+
+let currentZodiacKey = null;
+
+function startDrawScaled(z, scale) {
+  const canvas = document.getElementById('zodiac-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 배경 별
+  const pts = [
+    [12,8,0.6,0.4],[38,22,0.5,0.3],[72,6,0.7,0.5],[95,18,0.5,0.35],[130,11,0.6,0.45],
+    [168,5,0.5,0.3],[205,14,0.7,0.4],[248,8,0.5,0.5],[285,19,0.6,0.35],[318,7,0.5,0.4],
+    [355,15,0.8,0.5],[392,4,0.5,0.3],[428,20,0.6,0.45],[462,9,0.5,0.4],[490,25,0.6,0.35],
+    [25,45,0.5,0.3],[58,38,0.7,0.4],[112,42,0.5,0.45],[178,35,0.6,0.35],[215,48,0.5,0.4],
+    [265,38,0.7,0.5],[308,44,0.5,0.3],[345,36,0.6,0.45],[405,42,0.5,0.35],[448,35,0.7,0.4],
+    [18,68,0.6,0.4],[48,75,0.5,0.35],[88,62,0.7,0.45],[188,65,0.6,0.4],[232,72,0.5,0.5],
+    [272,60,0.7,0.35],[368,62,0.6,0.4],[415,74,0.5,0.3],[465,65,0.7,0.45],[8,98,0.6,0.4],
+    [42,105,0.5,0.3],[78,92,0.7,0.45],[118,100,0.5,0.4],[198,98,0.5,0.5],[285,95,0.5,0.45],
+    [372,92,0.5,0.35],[418,105,0.7,0.4],[460,95,0.5,0.3],[22,128,0.5,0.35],[62,135,0.7,0.4],
+    [182,118,0.5,0.4],[222,132,0.7,0.35],[382,130,0.7,0.4],[425,118,0.5,0.35],[465,128,0.6,0.4],
+    [52,165,0.7,0.45],[175,148,0.5,0.5],[375,152,0.7,0.4],[418,162,0.5,0.3],[458,155,0.6,0.45],
+    [28,188,0.7,0.4],[68,195,0.5,0.3],[428,192,0.6,0.4],[468,185,0.5,0.3],
+    [55,225,0.5,0.4],[412,222,0.7,0.45],[452,215,0.5,0.35],[485,228,0.6,0.4],
+    [75,260,0.7,0.45],[398,248,0.7,0.4],[438,258,0.5,0.3],[478,272,0.6,0.45]
+  ];
+  ctx.shadowBlur = 0;
+  pts.forEach(([x,y,r,o]) => {
+    ctx.fillStyle = `rgba(255,255,255,${o})`;
+    ctx.beginPath();
+    ctx.arc(x*scale, y*scale, r*scale, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  if (!z) return;
+
+  const cx = 250*scale, cy = 135*scale;
+  const zs = 1.75;
+  const sx = x => cx + (x - 250) * zs * scale;
+  const sy = y => cy + (y - 135) * zs * scale;
+
+  // 연결선
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+  ctx.lineWidth = 1.2 * scale;
+  z.lines.forEach(([a,b]) => {
+    ctx.beginPath();
+    ctx.moveTo(sx(z.stars[a][0]), sy(z.stars[a][1]));
+    ctx.lineTo(sx(z.stars[b][0]), sy(z.stars[b][1]));
+    ctx.stroke();
+  });
+
+  // 일반 별
+  z.stars.forEach((s,i) => {
+    if (z.bright.includes(i)) return;
+    ctx.shadowBlur = 6 * scale;
+    ctx.shadowColor = 'white';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath();
+    ctx.arc(sx(s[0]), sy(s[1]), 1.6*scale, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // 밝은 별
+  z.bright.forEach(i => {
+    const x = sx(z.stars[i][0]), y = sy(z.stars[i][1]);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath(); ctx.arc(x, y, 9*scale, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 22*scale; ctx.shadowColor = 'rgba(200,220,255,1)';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.arc(x, y, 4.5*scale, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 10*scale; ctx.shadowColor = 'white';
+    ctx.fillStyle = 'rgba(255,255,255,0.98)';
+    ctx.beginPath(); ctx.arc(x, y, 2.2*scale, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+}
+
+function startDraw(z) {
+  const canvas = document.getElementById('zodiac-canvas');
+  canvas.width = 500; canvas.height = 280;
+  startDrawScaled(z, 1);
+}
+
+async function captureBack(scale) {
+  const canvas = document.getElementById('zodiac-canvas');
+  canvas.width = 500 * scale;
+  canvas.height = 280 * scale;
+  const z = currentZodiacKey ? ZODIAC[currentZodiacKey] : null;
+  startDrawScaled(z, scale);
+  const result = await html2canvas(document.getElementById('back-card'), {
+    scale: scale, useCORS: true, logging: false, backgroundColor: '#0D0D0F',
+    width: 500, height: 280
+  });
+  canvas.width = 500; canvas.height = 280;
+  if (z) startDrawScaled(z, 1);
+  return result;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg || '저장되었습니다!';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  // 앞면 실시간 반영
+  const map = {
+    'i-name':  ['v-name',  '성함'],
+    'i-title': ['v-title', '직함'],
+    'i-phone': ['v-phone', '010-0000-0000'],
+    'i-email': ['v-email', 'contact@teamjpk.com'],
+    'i-addr':  ['v-addr',  '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호']
+  };
+  Object.keys(map).forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+      document.getElementById(map[id][0]).innerText = this.value || map[id][1];
+    });
+  });
+
+  // 입사일 → 별자리
+  document.getElementById('i-birth').addEventListener('input', function() {
+    if (!this.value) return;
+    const d = new Date(this.value);
+    const key = getZodiac(d.getMonth()+1, d.getDate());
+    currentZodiacKey = key;
+    const z = ZODIAC[key];
+    document.getElementById('zodiac-label').textContent = z.name + ' · ' + z.en;
+    document.getElementById('zodiac-title').textContent = z.name + ' ✦';
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth()+1).padStart(2,'0');
+    const dy = String(d.getDate()).padStart(2,'0');
+    document.getElementById('hire-date-label').textContent = yr + '. ' + mo + '. ' + dy;
+    startDraw(z);
+  });
+
+  const frontEl = document.querySelector('.bc');
+  const backEl  = document.getElementById('back-card');
+
+  // PNG 저장
+  async function dlPNG(el, bgColor, filename) {
+    await document.fonts.ready;
+    const name = document.getElementById('i-name').value || '성함';
+    let captured;
+    if (bgColor === '#0D0D0F') {
+      captured = await captureBack(2);
+    } else {
+      captured = await html2canvas(el, {
+        scale: 2, useCORS: true, logging: false,
+        backgroundColor: bgColor, width: 500, height: 280
+      });
+    }
+    const a = document.createElement('a');
+    a.download = `teamjpk_${filename}_${name}.png`;
+    a.href = captured.toDataURL('image/png', 1.0);
+    a.click();
+    showToast(`${filename} PNG 저장 완료!`);
+  }
+
+  document.getElementById('btn-front').addEventListener('click', () => dlPNG(frontEl, '#ffffff', '앞면'));
+  document.getElementById('btn-back').addEventListener('click',  () => dlPNG(backEl, '#0D0D0F', '뒷면'));
+
+  // PDF 저장 (재단선 포함)
+  document.getElementById('btn-pdf').addEventListener('click', async function() {
+    await document.fonts.ready;
+    const name = document.getElementById('i-name').value || '성함';
+    const { jsPDF } = window.jspdf;
+
+    const CW = 90, CH = 90 * 280 / 500; // 90 × 50.4mm
+    const gap = 2, lineLen = 5, margin = gap + lineLen;
+    const PW = CW + margin * 2, PH = CH + margin * 2;
+    const ox = margin, oy = margin;
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [PW, PH] });
+
+    function drawCropMarks(pdf, ox, oy, cw, ch) {
+      pdf.setDrawColor(255, 0, 0);
+      pdf.setLineWidth(0.1);
+      [[ox, oy], [ox+cw, oy], [ox, oy+ch], [ox+cw, oy+ch]].forEach(([cx, cy]) => {
+        const dx = cx === ox ? -1 : 1;
+        const dy = cy === oy ? -1 : 1;
+        pdf.line(cx + dx*gap, cy, cx + dx*(gap+lineLen), cy);
+        pdf.line(cx, cy + dy*gap, cx, cy + dy*(gap+lineLen));
+      });
+    }
+
+    showToast('PDF 생성 중... 잠시만요');
+
+    // 앞면
+    const frontCanvas = await html2canvas(frontEl, {
+      scale: 15, useCORS: true, logging: false,
+      backgroundColor: '#ffffff', width: 500, height: 280
+    });
+    pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
+    drawCropMarks(pdf, ox, oy, CW, CH);
+
+    // 뒷면
+    pdf.addPage([PW, PH], 'landscape');
+    const backCanvas = await captureBack(15);
+    pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
+    drawCropMarks(pdf, ox, oy, CW, CH);
+
+    const brandKey = document.getElementById('brand-select').value;
+    const brandName = BRANDS[brandKey].bold + (BRANDS[brandKey].light || '');
+    pdf.save(`${brandName}_명함_${name}.pdf`);
+    showToast('PDF 저장 완료! (재단선 포함, 앞+뒷면)');
+  });
+});
+</script>
+</body>
+</html>
