@@ -8,20 +8,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { font-family:'Exo 2','Pretendard',sans-serif; color:#1a1a1a; background:#fafafa; }
-  body { padding:80px 40px 120px; max-width:1200px; margin:0 auto; }
+  body { padding:96px 48px 140px; max-width:1280px; margin:0 auto; }
 
-  header { margin-bottom:72px; }
-  header .kicker { font-size:12px; font-weight:400; letter-spacing:4px; text-transform:uppercase; color:#999; margin-bottom:12px; }
-  header h1 { font-size:40px; font-weight:200; letter-spacing:-1.5px; }
+  header { margin-bottom:120px; }
+  header .kicker { font-size:13px; font-weight:500; letter-spacing:6px; text-transform:uppercase; color:#999; margin-bottom:22px; }
+  header h1 { font-size:clamp(64px, 9vw, 120px); font-weight:200; letter-spacing:-3px; line-height:0.95; }
 
-  .brand { margin-bottom:96px; padding-top:56px; border-top:1px solid rgba(0,0,0,0.08); }
-  .brand h2 { font-family:'Exo 2',sans-serif; font-size:28px; font-weight:700; letter-spacing:-0.5px; margin-bottom:6px; }
-  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:40px; }
+  .brand { margin-bottom:120px; padding-top:64px; border-top:1px solid rgba(0,0,0,0.08); }
+  .brand h2 { font-family:'Exo 2',sans-serif; font-size:clamp(32px, 4vw, 48px); font-weight:600; letter-spacing:-1px; margin-bottom:8px; line-height:1; }
+  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:48px; letter-spacing:0.5px; }
 
   /* 컬러 팔레트 */
   .colors { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:48px; }
@@ -54,9 +56,9 @@
   .btn:hover { opacity:0.75; }
 
   /* 명함 */
-  .cards { padding-top:56px; border-top:1px solid rgba(0,0,0,0.08); }
-  .cards h2 { font-size:28px; font-weight:200; letter-spacing:-0.5px; margin-bottom:8px; }
-  .cards p { font-size:13px; color:#999; margin-bottom:24px; }
+  .cards { padding-top:64px; border-top:1px solid rgba(0,0,0,0.08); }
+  .cards h2 { font-size:clamp(32px, 4vw, 48px); font-weight:200; letter-spacing:-1px; margin-bottom:10px; }
+  .cards p { font-size:14px; color:#999; margin-bottom:32px; }
   .cards .row { display:flex; gap:12px; flex-wrap:wrap; }
 
   footer { margin-top:80px; padding-top:32px; border-top:1px solid rgba(0,0,0,0.06); font-size:11px; color:#999; }
@@ -225,22 +227,25 @@ function renderBrands() {
 // ===== 다운로드 썸네일 =====
 const DL_VARIANTS = {
   fp: [
-    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
-    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
-    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
-    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
+    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
+    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
+    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
+    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
   ],
   jpk: [
-    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
-    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
-    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
-    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
+    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
+    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
+    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
+    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
   ],
   cb: [
-    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
-    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
-    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
-    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
+    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
+    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
+    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
+    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
   ],
 };
 
@@ -252,6 +257,8 @@ function buildThumb(bk, v) {
   const kakaoFs  = (bk === 'fp') ? 195 : 230;
   const wrap = (cls, bg, innerHtml) =>
     `<div class="dl-thumb ${cls}" style="${bg?`background:${bg};`:''}"><div class="thumb-inner">${innerHtml}</div></div>`;
+  if (v === 'svgTransparent')
+    return wrap('dl-thumb--transparent', '', `<div style="font-family:'Exo 2';font-size:11px;color:#666;letter-spacing:2px;">SVG</div>${buildCI(inlineFs, light, bk)}`);
   if (v === 'transparent')
     return wrap('dl-thumb--transparent', '', buildCI(inlineFs, light, bk));
   if (v === 'whiteSquare')
@@ -264,6 +271,43 @@ function buildThumb(bk, v) {
   if (v === 'kakaoCIWhite')
     return wrap('dl-thumb--kakao dl-thumb--white', '#fff', buildCI(kakaoFs, light, bk, 'kakao'));
   return '';
+}
+
+// ===== SVG 생성 (벡터, 편집 가능) =====
+function generateSvg(brandKey) {
+  const c = CI_LOGO[brandKey];
+  const t = CI_TEXT[brandKey].default;
+  const fontSize = 160;
+  const roleColor = role => role==='main' ? c.main : role==='accent' ? c.accent : c.base;
+  let tspans = '';
+  if (t.type === 'inline') {
+    tspans = t.parts.map(p =>
+      `<tspan font-weight="${p.weight}" fill="${roleColor(p.role)}">${p.text}</tspan>`
+    ).join('');
+  }
+  const w = 1400, h = 400;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap');
+      @import url('https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css');
+      text { font-family:'Exo 2','Pretendard',sans-serif; }
+    ]]></style>
+  </defs>
+  <text x="50%" y="58%" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}">${tspans}</text>
+</svg>`;
+}
+
+function downloadSvg(brandKey) {
+  const c = CI_LOGO[brandKey];
+  const svg = generateSvg(brandKey);
+  const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = `CI_${c.name}.svg`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function scaleThumbs() {
@@ -287,8 +331,9 @@ function renderDownloadGrid() {
   });
 }
 
-// ===== PNG 다운로드 =====
+// ===== PNG/SVG 다운로드 =====
 async function downloadCIPng(brandKey, variant) {
+  if (variant === 'svgTransparent') return downloadSvg(brandKey);
   await document.fonts.ready;
   const c = CI_LOGO[brandKey];
   const container = document.createElement('div');
@@ -350,7 +395,7 @@ async function downloadCI(brandKey) {
     t.innerHTML = buildCI(360, colors, brandKey);
     container.appendChild(t); document.body.appendChild(container);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const canvas = await html2canvas(t, { scale:2, backgroundColor:bg, useCORS:true, logging:false });
+    const canvas = await html2canvas(t, { scale:4, backgroundColor:bg, useCORS:true, logging:false });
     container.remove();
     return canvas.toDataURL('image/png', 1.0);
   };
@@ -364,9 +409,139 @@ async function downloadCI(brandKey) {
 }
 
 // ===== 초기화 =====
+// ===== 제안 섹션 =====
+function renderProposal() {
+  const root = document.getElementById('proposal-sections');
+  if (!root) return;
+  const brands = ['fp','jpk','cb'];
+
+  // 1. 이니셜 심볼 (F, T, C)
+  const initialHtml = brands.map(bk => {
+    const c = CI_LOGO[bk];
+    const letter = bk === 'fp' ? 'F' : bk === 'jpk' ? 'J' : 'C';
+    const variants = [
+      { shape:'circle', bg:c.main, color:'#fff', label:'원 · 메인' },
+      { shape:'square', bg:c.main, color:'#fff', label:'사각 · 메인' },
+      { shape:'circle', bg:'#fff', color:c.main, border:c.main, label:'원 · 아웃라인' },
+      { shape:'square', bg:c.accent, color:c.main, label:'사각 · 보조' },
+    ];
+    const tiles = variants.map(v => `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="width:120px;height:120px;background:${v.bg};border-radius:${v.shape==='circle'?'50%':'24px'};display:flex;align-items:center;justify-content:center;${v.border?`border:2px solid ${v.border};`:''}">
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${v.color};font-size:64px;line-height:1;">${letter}</span>
+        </div>
+        <div style="font-size:10px;color:#999;">${v.label}</div>
+      </div>`).join('');
+    return `
+      <div>
+        <div style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#333;font-size:14px;margin-bottom:14px;">${c.name}</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;">${tiles}</div>
+      </div>`;
+  }).join('');
+
+  // 2. 앵커 도트 (freepass 계열)
+  const anchorHtml = brands.map(bk => {
+    const c = CI_LOGO[bk];
+    const text = bk === 'fp' ? 'freepass' : bk === 'jpk' ? 'teamjpk' : 'carbell';
+    return `
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
+          <div style="width:16px;height:16px;border-radius:50%;background:${c.main};"></div>
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;">${text}</span>
+        </div>
+        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
+          <div style="width:16px;height:16px;border-radius:50%;background:${c.accent};"></div>
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;">${text}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 3. 모션 액센트 (› 기호)
+  const motionHtml = brands.map(bk => {
+    const c = CI_LOGO[bk];
+    const text = bk === 'fp' ? 'freepass' : bk === 'jpk' ? 'teamjpk' : 'carbell';
+    return `
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:baseline;gap:10px;">
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;">${text}</span>
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:300;color:${c.accent};font-size:36px;line-height:1;">›</span>
+        </div>
+        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:baseline;gap:10px;">
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;">${text}</span>
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:300;color:${c.accent};font-size:36px;line-height:1;">›</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div style="margin-bottom:64px;">
+      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">1. 이니셜 심볼 (Initial Mark) ★ 추천</div>
+      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
+        각 브랜드 첫 글자를 원/사각 안에 담은 아이콘. 파비콘·앱 아이콘·SNS 프로필에 단독 사용 가능.
+        텍스트 CI와 페어로 세트 구성.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:36px;">${initialHtml}</div>
+    </div>
+
+    <div style="margin-bottom:64px;">
+      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">2. 앵커 도트 (Anchor Dot)</div>
+      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
+        브랜드명 앞에 작은 컬러 도트 추가. 미니멀하면서 "로고"임을 인식시킴. 공식문서·서명 꼬리에 적합.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:20px;">${anchorHtml}</div>
+    </div>
+
+    <div style="margin-bottom:64px;">
+      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">3. 모션 액센트 (Motion)</div>
+      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
+        브랜드명 뒤에 › chevron 추가. 모빌리티·진행·행동의 뉘앙스. 버튼·CTA 영역과 잘 어울림.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:20px;">${motionHtml}</div>
+    </div>
+
+    <div style="margin-bottom:64px;">
+      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">4. 브랜드 아이콘 (Brand Icon)</div>
+      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
+        브랜드명 뒤에 업종 상징 SVG 아이콘. carbell=정비(렌치), freepass=모빌리티(자동차), teamjpk=팀(그룹).
+        명함·홈페이지 섹션 타이틀에 톤 살리기.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:20px;">${iconBrandHtml()}</div>
+    </div>
+  `;
+}
+
+// Phosphor Icons — jpkerp에서 사용 중인 아이콘 라이브러리
+const BRAND_ICONS = {
+  fp:  '<i class="ph ph-car-simple"></i>',
+  jpk: '<i class="ph ph-users-three"></i>',
+  cb:  '<i class="ph ph-wrench"></i>',
+};
+
+function iconBrandHtml() {
+  return ['fp','jpk','cb'].map(bk => {
+    const c = CI_LOGO[bk];
+    const text = bk==='fp' ? 'freepass' : bk==='jpk' ? 'teamjpk' : 'carbell';
+    const icon = BRAND_ICONS[bk];
+    const tag = bk==='fp' ? 'Mobility' : bk==='jpk' ? 'Team' : 'Auto Care';
+    return `
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;line-height:1;">${text}</span>
+          <span style="color:${c.accent};font-size:28px;line-height:1;display:inline-flex;">${icon}</span>
+        </div>
+        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
+          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;line-height:1;">${text}</span>
+          <span style="color:${c.accent};font-size:28px;line-height:1;display:inline-flex;">${icon}</span>
+        </div>
+        <div style="font-size:11px;color:#999;letter-spacing:1px;text-transform:uppercase;">${tag}</div>
+      </div>`;
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   renderBrands();
   renderDownloadGrid();
+  renderProposal();
   scaleThumbs();
   try { await document.fonts.ready; } catch(_) {}
   scaleThumbs();
