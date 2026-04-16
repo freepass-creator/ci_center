@@ -1,599 +1,377 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CI Center</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Pretendard', sans-serif;
-      background: #fafafa;
-      color: #1a1a1a;
-      word-break: keep-all;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI Center</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { font-family:'Exo 2','Pretendard',sans-serif; color:#1a1a1a; background:#fafafa; }
+  body { padding:80px 40px 120px; max-width:1200px; margin:0 auto; }
 
-    .header {
-      padding: 80px 48px 40px;
-      max-width: 1080px;
-      margin: 0 auto;
-    }
-    .header h1 {
-      font-size: 14px;
-      font-weight: 300;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: #999;
-      margin-bottom: 16px;
-    }
-    .header h2 {
-      font-size: 32px;
-      font-weight: 200;
-      letter-spacing: -1px;
-    }
+  header { margin-bottom:72px; }
+  header .kicker { font-size:12px; font-weight:400; letter-spacing:4px; text-transform:uppercase; color:#999; margin-bottom:12px; }
+  header h1 { font-size:40px; font-weight:200; letter-spacing:-1.5px; }
 
-    .brand-section {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 60px 48px;
-      border-top: 1px solid rgba(0,0,0,0.06);
-    }
+  .brand { margin-bottom:96px; padding-top:56px; border-top:1px solid rgba(0,0,0,0.08); }
+  .brand h2 { font-family:'Exo 2',sans-serif; font-size:28px; font-weight:700; letter-spacing:-0.5px; margin-bottom:6px; }
+  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:40px; }
 
-    .brand-name-display {
-      display: flex;
-      align-items: baseline;
-      gap: 0;
-      margin-bottom: 40px;
-    }
-    .brand-name-display .light {
-      font-family: 'Pretendard', sans-serif;
-      font-weight: 200;
-      font-size: 48px;
-      letter-spacing: -1px;
-    }
-    .brand-name-display .bold {
-      font-family: 'Pretendard', sans-serif;
-      font-weight: 700;
-      font-size: 48px;
-      letter-spacing: -1px;
-      margin-left: 3px; /* CI 기준 간격 */
-    }
+  /* 컬러 팔레트 */
+  .colors { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:48px; }
+  .swatch { display:flex; flex-direction:column; flex:1; min-width:200px; }
+  .swatch .chip { width:100%; aspect-ratio:3/1; border-radius:10px; }
+  .swatch .meta { padding-top:12px; font-size:12px; line-height:1.6; }
+  .swatch .meta .role { color:#999; letter-spacing:1px; text-transform:uppercase; font-size:10px; }
+  .swatch .meta .hex { font-weight:700; color:#1a1a1a; margin-top:2px; }
+  .swatch .meta .rgb { color:#666; }
 
-    .ci-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 32px;
-      margin-bottom: 40px;
-    }
+  /* CI 3종 히어로 */
+  .hero { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:32px; }
+  .hero-card { aspect-ratio:4/3; border-radius:14px; display:flex; align-items:center; justify-content:center; padding:16px; border:1px solid rgba(0,0,0,0.06); overflow:hidden; }
+  @media (max-width:720px) { .hero { grid-template-columns:1fr; } }
 
-    .ci-block h4 {
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #999;
-      margin-bottom: 12px;
-    }
+  /* 다운로드 썸네일 */
+  .downloads h3 { font-size:11px; font-weight:400; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:14px; }
+  .dl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; margin-bottom:14px; }
+  .dl-item { display:flex; flex-direction:column; gap:8px; cursor:pointer; text-align:center; transition:transform 0.15s; }
+  .dl-item:hover { transform:translateY(-2px); }
+  .dl-thumb { width:100%; aspect-ratio:1; border-radius:10px; border:1px solid rgba(0,0,0,0.08); overflow:hidden; position:relative; }
+  .dl-thumb .thumb-inner { width:1024px; height:1024px; display:flex; align-items:center; justify-content:center; transform-origin:top left; }
+  .dl-thumb--transparent { background:repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 14px 14px; }
+  .dl-thumb--kakao::after { content:''; position:absolute; inset:8%; border:1px dashed rgba(255,255,255,0.35); border-radius:50%; pointer-events:none; }
+  .dl-thumb--kakao.dl-thumb--white::after { border-color:rgba(0,0,0,0.12); }
+  .dl-label { font-size:11px; color:#333; font-weight:600; }
+  .dl-label small { display:block; color:#999; font-size:9px; margin-top:2px; font-weight:400; letter-spacing:0.3px; }
 
-    /* 색상 견본 */
-    .color-swatch {
-      width: 100%;
-      height: 60px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-    .color-info {
-      font-size: 13px;
-      font-weight: 300;
-      color: #555;
-      line-height: 1.8;
-    }
-    .color-info strong {
-      font-weight: 500;
-      color: #1a1a1a;
-    }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:#1a1a1a; color:#fff; border:none; border-radius:6px; font-family:inherit; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:opacity 0.2s; }
+  .btn:hover { opacity:0.75; }
 
-    /* 폰트 견본 */
-    .font-sample {
-      margin-bottom: 8px;
-    }
-    .font-sample .w200 {
-      font-weight: 200;
-      font-size: 28px;
-      letter-spacing: -0.5px;
-      line-height: 1.4;
-    }
-    .font-sample .w700 {
-      font-weight: 700;
-      font-size: 28px;
-      letter-spacing: -0.5px;
-      line-height: 1.4;
-    }
-    .font-info {
-      font-size: 12px;
-      font-weight: 300;
-      color: #999;
-      margin-top: 8px;
-    }
+  /* 명함 */
+  .cards { padding-top:56px; border-top:1px solid rgba(0,0,0,0.08); }
+  .cards h2 { font-size:28px; font-weight:200; letter-spacing:-0.5px; margin-bottom:8px; }
+  .cards p { font-size:13px; color:#999; margin-bottom:24px; }
+  .cards .row { display:flex; gap:12px; flex-wrap:wrap; }
 
-    /* 사용 예시 */
-    .usage-row {
-      display: flex;
-      gap: 32px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .usage-item {
-      padding: 24px 32px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: baseline;
-      gap: 0;
-    }
-    .usage-item .light {
-      font-weight: 200;
-      letter-spacing: -0.5px;
-    }
-    .usage-item .bold {
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-left: 3px; /* CI 기준 간격 */
-    }
-    .usage-dark {
-      background: #1a1a1a;
-    }
-    .usage-light {
-      background: #ffffff;
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-    .usage-color {
-      color: #fff;
-    }
-
-    .usage-label {
-      font-size: 10px;
-      font-weight: 300;
-      color: #999;
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    /* 대형 CI 로고 */
-    .ci-logo-wrap {
-      margin-top: 40px;
-    }
-    .ci-logo-wrap h4 {
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #999;
-      margin-bottom: 16px;
-    }
-    .ci-logo-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .ci-logo-box {
-      padding: 48px 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ci-logo-box .l { font-weight: 200; letter-spacing: -1px; }
-    .ci-logo-box .b { font-weight: 700; letter-spacing: -1px; margin-left: 3px; }
-    .ci-logo-box--light { background: #fff; border: 1px solid rgba(0,0,0,0.06); }
-    .ci-logo-box--dark { background: #0D0D0F; }
-    .ci-logo-box--color { }
-
-    .btn-pdf {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 24px;
-      background: #1a1a1a;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .btn-pdf:hover { opacity: 0.7; }
-
-    /* 제작 가이드 */
-    .guide {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-    }
-    .guide-block h4 {
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #999;
-      margin-bottom: 12px;
-    }
-    .guide-block p {
-      font-size: 13px;
-      font-weight: 300;
-      color: #555;
-      line-height: 2;
-    }
-    .guide-block strong { font-weight: 500; color: #1a1a1a; }
-    .guide-block code {
-      font-size: 11px;
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 3px;
-      word-break: break-all;
-    }
-    .guide-block a { text-decoration: none; }
-    .guide-block a:hover { text-decoration: underline; }
-
-    .spec-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-    .spec-table th {
-      font-size: 10px;
-      font-weight: 400;
-      color: #999;
-      text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(0,0,0,0.08);
-    }
-    .spec-table td {
-      padding: 8px;
-      font-weight: 300;
-      color: #555;
-      border-bottom: 1px solid rgba(0,0,0,0.04);
-    }
-    .spec-table strong { font-weight: 600; color: #1a1a1a; }
-    .dot {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      vertical-align: middle;
-    }
-
-    @media (max-width: 768px) {
-      .header, .brand-section { padding-left: 24px; padding-right: 24px; }
-      .ci-grid { grid-template-columns: 1fr; }
-      .brand-name-display .light,
-      .brand-name-display .bold { font-size: 36px; }
-      .usage-row { flex-direction: column; }
-      .guide { grid-template-columns: 1fr; }
-      .ci-logo-grid { grid-template-columns: 1fr; }
-      .spec-table { font-size: 11px; }
-    }
-  </style>
+  footer { margin-top:80px; padding-top:32px; border-top:1px solid rgba(0,0,0,0.06); font-size:11px; color:#999; }
+</style>
 </head>
 <body>
 
-<div class="header">
-  <h1>CI Center</h1>
-  <h2>브랜드 아이덴티티 가이드</h2>
-</div>
+<header>
+  <div class="kicker">CI Center</div>
+  <h1>브랜드 아이덴티티</h1>
+</header>
 
-<!-- ============================================================
-     team jpk
-     ============================================================ -->
-<div class="brand-section">
-  <div class="brand-name-display">
-    <span class="light" style="color: #555;">team</span>
-    <span class="bold" style="color: #0D0D0F;">jpk</span>
+<main id="main"></main>
+
+<section class="cards">
+  <h2>명함 제작</h2>
+  <p>CI 기준에 맞춘 명함을 직접 입력하고 PDF로 내려받습니다.</p>
+  <div class="row">
+    <a class="btn" href="teamjpk_명함제작.html">클래식 명함 (전 브랜드) →</a>
+    <a class="btn" href="carbell_명함제작.html" style="background:#0D4E8B;">모던 명함 (carbell) →</a>
   </div>
+</section>
 
-  <div class="ci-grid">
-    <div class="ci-block">
-      <h4>Primary Color</h4>
-      <div class="color-swatch" style="background: #0D0D0F;"></div>
-      <div class="color-info">
-        <strong>#0D0D0F</strong><br>
-        RGB 13, 13, 15<br>
-        Black
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Font</h4>
-      <div class="font-sample">
-        <div class="w200" style="color: #555;">team</div>
-        <div class="w700" style="color: #0D0D0F;">jpk</div>
-      </div>
-      <div class="font-info">
-        Pretendard<br>
-        Light 200 + Bold 700<br>
-        간격 3px
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Usage</h4>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div>
-          <div class="usage-item usage-dark">
-            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">team</span>
-            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">jpk</span>
-          </div>
-          <div class="usage-label">어두운 배경</div>
-        </div>
-        <div>
-          <div class="usage-item usage-light">
-            <span class="light" style="color: #555; font-size: 20px;">team</span>
-            <span class="bold" style="color: #0D0D0F; font-size: 20px;">jpk</span>
-          </div>
-          <div class="usage-label">밝은 배경</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-    <div class="ci-logo-wrap">
-      <h4>Logo Variations</h4>
-      <div class="ci-logo-grid">
-        <div class="ci-logo-box ci-logo-box--light" id="jpk-light">
-          <span style="font-size: 64px;"><span class="l" style="color:#555;">team</span><span class="b" style="color:#0D0D0F;">jpk</span></span>
-        </div>
-        <div class="ci-logo-box ci-logo-box--dark" id="jpk-dark">
-          <span style="font-size: 64px;"><span class="l" style="color:rgba(255,255,255,0.4);">team</span><span class="b" style="color:rgba(255,255,255,0.9);">jpk</span></span>
-        </div>
-      </div>
-      <button class="btn-pdf" onclick="downloadCI('jpk')">PDF 다운로드 — teamjpk</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     freepass mobility
-     ============================================================ -->
-<div class="brand-section">
-  <div class="brand-name-display">
-    <span class="bold" style="color: #0D4E8B;">freepass</span>
-    <span class="light" style="color: #555;">mobility</span>
-  </div>
-
-  <div class="ci-grid">
-    <div class="ci-block">
-      <h4>Primary Color</h4>
-      <div class="color-swatch" style="background: #0D4E8B;"></div>
-      <div class="color-info">
-        <strong>#0D4E8B</strong><br>
-        RGB 13, 78, 139<br>
-        Deep Blue
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Font</h4>
-      <div class="font-sample">
-        <div class="w700" style="color: #0D4E8B;">freepass</div>
-        <div class="w200" style="color: #555;">mobility</div>
-      </div>
-      <div class="font-info">
-        Pretendard<br>
-        Light 200 + Bold 700<br>
-        간격 3px
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Usage</h4>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div>
-          <div class="usage-item usage-dark">
-            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">freepass</span>
-            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">mobility</span>
-          </div>
-          <div class="usage-label">어두운 배경</div>
-        </div>
-        <div>
-          <div class="usage-item usage-light">
-            <span class="bold" style="color: #0D4E8B; font-size: 20px;">freepass</span>
-            <span class="light" style="color: #555; font-size: 20px;">mobility</span>
-          </div>
-          <div class="usage-label">밝은 배경</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-    <div class="ci-logo-wrap">
-      <h4>Logo Variations</h4>
-      <div class="ci-logo-grid">
-        <div class="ci-logo-box ci-logo-box--light" id="fp-light">
-          <span style="font-size: 64px;"><span class="b" style="color:#0D4E8B;">freepass</span><span class="l" style="color:#555;">mobility</span></span>
-        </div>
-        <div class="ci-logo-box ci-logo-box--dark" id="fp-dark">
-          <span style="font-size: 64px;"><span class="b" style="color:rgba(255,255,255,0.9);">freepass</span><span class="l" style="color:rgba(255,255,255,0.4);">mobility</span></span>
-        </div>
-      </div>
-      <button class="btn-pdf" onclick="downloadCI('fp')">PDF 다운로드 — freepassmobility</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     car bell
-     ============================================================ -->
-<div class="brand-section">
-  <div class="brand-name-display">
-    <span class="light" style="color: #555;">car</span>
-    <span class="bold" style="color: #0D4E8B;">bell</span>
-  </div>
-
-  <div class="ci-grid">
-    <div class="ci-block">
-      <h4>Primary Color</h4>
-      <div class="color-swatch" style="background: #0D4E8B;"></div>
-      <div class="color-info">
-        <strong>#0D4E8B</strong><br>
-        RGB 13, 78, 139<br>
-        Deep Blue
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Font</h4>
-      <div class="font-sample">
-        <div class="w200" style="color: #555;">ca</div>
-        <div class="w700" style="color: #0D4E8B;">bell</div>
-      </div>
-      <div class="font-info">
-        Pretendard<br>
-        Light 200 + Bold 700<br>
-        간격 3px
-      </div>
-    </div>
-    <div class="ci-block">
-      <h4>Usage</h4>
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div>
-          <div class="usage-item usage-dark">
-            <span class="light" style="color: rgba(255,255,255,0.4); font-size: 20px;">ca</span>
-            <span class="bold" style="color: rgba(255,255,255,0.85); font-size: 20px;">bell</span>
-          </div>
-          <div class="usage-label">어두운 배경</div>
-        </div>
-        <div>
-          <div class="usage-item usage-light">
-            <span class="light" style="color: #555; font-size: 20px;">ca</span>
-            <span class="bold" style="color: #0D4E8B; font-size: 20px;">bell</span>
-          </div>
-          <div class="usage-label">밝은 배경</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-    <div class="ci-logo-wrap">
-      <h4>Logo Variations</h4>
-      <div class="ci-logo-grid">
-        <div class="ci-logo-box ci-logo-box--light" id="cb-light">
-          <span style="font-size: 64px;"><span class="l" style="color:#555;">car</span><span class="b" style="color:#0D4E8B;">bell</span></span>
-        </div>
-        <div class="ci-logo-box ci-logo-box--dark" id="cb-dark">
-          <span style="font-size: 64px;"><span class="l" style="color:rgba(255,255,255,0.4);">car</span><span class="b" style="color:rgba(255,255,255,0.9);">bell</span></span>
-        </div>
-      </div>
-      <button class="btn-pdf" onclick="downloadCI('cb')">PDF 다운로드 — carbell</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     CI 제작 가이드
-     ============================================================ -->
-<div class="brand-section">
-  <div class="brand-name-display">
-    <span class="light" style="color: #999; font-size: 32px;">CI</span>
-    <span class="bold" style="color: #1a1a1a; font-size: 32px;">Guide</span>
-  </div>
-
-  <div class="guide">
-    <div class="guide-block">
-      <h4>Font</h4>
-      <p><strong>Pretendard</strong><br>
-      무료 오픈소스 — <a href="https://cactus.tistory.com/306" target="_blank" style="color:#0D4E8B;">다운로드</a><br>
-      웹: <code>https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css</code></p>
-    </div>
-
-    <div class="guide-block">
-      <h4>Weight Rule</h4>
-      <p>메인 브랜드명 = <strong>700 (Bold)</strong><br>
-      보조 텍스트 = <strong>200 (Light)</strong><br>
-      메인과 보조 사이 간격 = <strong>3px</strong></p>
-    </div>
-
-    <div class="guide-block">
-      <h4>Color Spec</h4>
-      <table class="spec-table">
-        <tr><th>브랜드</th><th>메인 컬러</th><th>HEX</th><th>RGB</th><th>보조 텍스트</th></tr>
-        <tr><td>team<strong>jpk</strong></td><td><span class="dot" style="background:#0D0D0F;"></span></td><td>#0D0D0F</td><td>13, 13, 15</td><td>#555555</td></tr>
-        <tr><td><strong>freepass</strong>mobility</td><td><span class="dot" style="background:#0D4E8B;"></span></td><td>#0D4E8B</td><td>13, 78, 139</td><td>#555555</td></tr>
-        <tr><td>car<strong>bell</strong></td><td><span class="dot" style="background:#0D4E8B;"></span></td><td>#0D4E8B</td><td>13, 78, 139</td><td>#555555</td></tr>
-      </table>
-    </div>
-
-    <div class="guide-block">
-      <h4>Dark Background</h4>
-      <p>메인 브랜드명 = <strong>rgba(255,255,255,0.9)</strong><br>
-      보조 텍스트 = <strong>rgba(255,255,255,0.4)</strong><br>
-      배경색 = <strong>#0D0D0F</strong> 또는 자유</p>
-    </div>
-
-    <div class="guide-block">
-      <h4>Minimum Size</h4>
-      <p>인쇄: 최소 높이 <strong>8mm</strong><br>
-      화면: 최소 <strong>14px</strong><br>
-      여백: 로고 높이의 <strong>50%</strong> 이상 확보</p>
-    </div>
-
-    <div class="guide-block">
-      <h4>Don'ts</h4>
-      <p>두께 변경 금지 (200/700 고정)<br>
-      색상 임의 변경 금지<br>
-      간격(3px) 변경 금지<br>
-      기울임·그림자·외곽선 금지</p>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     명함 제작
-     ============================================================ -->
-<div class="brand-section">
-  <div class="brand-name-display">
-    <span class="light" style="color: #999; font-size: 32px;">Business</span>
-    <span class="bold" style="color: #1a1a1a; font-size: 32px;">Card</span>
-  </div>
-  <p style="font-size: 14px; font-weight: 300; color: #555; line-height: 1.8; margin-bottom: 32px;">
-    CI 규격에 맞춘 명함을 직접 만들고 PDF로 다운로드할 수 있습니다.
-  </p>
-  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-    <a href="teamjpk_명함제작.html" class="btn-pdf" style="text-decoration: none;">
-      클래식 명함 — 전 브랜드 →
-    </a>
-    <a href="carbell_명함제작.html" class="btn-pdf" style="text-decoration: none; background: #0D4E8B;">
-      모던 명함 — carbell →
-    </a>
-  </div>
-</div>
-
-<div style="padding: 40px 48px; max-width: 1080px; margin: 0 auto; border-top: 1px solid rgba(0,0,0,0.06);">
-  <p style="font-size: 10px; color: #999; font-weight: 300;">© 2026 TEAMJPK. CI Center — Internal Use Only.</p>
-</div>
+<footer>© 2026 TEAMJPK · CI Center — Internal Use Only.</footer>
 
 <script>
-async function downloadCI(brand) {
-  const configs = {
-    jpk: { ids: ['jpk-light','jpk-dark'], name: 'teamjpk' },
-    fp:  { ids: ['fp-light','fp-dark'], name: 'freepassmobility' },
-    cb:  { ids: ['cb-light','cb-dark'], name: 'carbell' },
+// ===== CI 설정 =====
+// 3색 체계: main(메인) · accent(보조) · base(바닥=회색)
+const CI_LOGO = {
+  fp:  { name:'freepassmobility', main:'#1B2A4A', accent:'#9EC5F3', base:'#7F93B3' },
+  jpk: { name:'teamjpk',          main:'#0D0D0F', accent:'#1B2A4A', base:'#7F8599' },
+  cb:  { name:'carbell',          main:'#0D4E8B', accent:'#9EC5F3', base:'#7F93B3' },
+};
+const CI_TEXT = {
+  fp: {
+    default: { type:'inline', parts:[
+      { text:'freepass', weight:600, role:'main' },
+      { text:'mobility', weight:300, role:'base' }
+    ]},
+    kakao: { type:'stacked',
+      mainParts:[{text:'free',weight:600,role:'main'},{text:'pass',weight:600,role:'accent'}],
+      sub:{text:'mobility',weight:300,role:'base'}
+    }
+  },
+  jpk:{ default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] } },
+  cb: { default:{ type:'inline', parts:[{text:'car', weight:300,role:'base'},{text:'bell',weight:600,role:'main'}] } },
+};
+
+function hexWithAlpha(hex, a){
+  const h=hex.replace('#','');
+  const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ===== CI 렌더링 (Exo 2 + scaleY 0.6 + tight) =====
+// colors = { main, accent, base } — role별로 매핑
+// mode: 'default' (가로 1줄) | 'kakao' (2줄 스택, fp만 해당)
+function buildCI(fontSize, colors, brandKey, mode){
+  const brand = CI_TEXT[brandKey];
+  const t = (mode && brand[mode]) || brand.default;
+  const ff = `'Exo 2','Pretendard',sans-serif`;
+  const roleColor = (role) => colors[role] || colors.main;
+  const gapPx = t.gapEm ? Math.round(fontSize * t.gapEm) : 0;
+  const makeSpan = (p, i) => {
+    const ml = (i > 0 && gapPx) ? `margin-left:${gapPx}px;` : '';
+    return `<span style="font-weight:${p.weight};color:${roleColor(p.role)};${ml}">${p.text}</span>`;
   };
-  const cfg = configs[brand];
+  if (t.type === 'inline') {
+    const spans = t.parts.map(makeSpan).join('');
+    return `<div class="ci-main" style="font-family:${ff};font-size:${fontSize}px;white-space:nowrap;text-align:center;">${spans}</div>`;
+  }
+  // stacked (카톡 프로필 전용)
+  const mainSpans = t.mainParts.map(makeSpan).join('');
+  const mainL = `<div class="ci-main" style="font-family:${ff};font-size:${fontSize}px;white-space:nowrap;text-align:center;">${mainSpans}</div>`;
+  const subL = t.sub
+    ? `<div class="ci-sub" style="font-family:${ff};font-weight:${t.sub.weight};color:${roleColor(t.sub.role)};font-size:${fontSize}px;text-align:center;">${t.sub.text}</div>`
+    : '';
+  return `<div style="text-align:center;">${mainL}${subL}</div>`;
+}
+
+// 컨텍스트별 3색 세트
+function colorSet(c, ctx) {
+  if (ctx === 'brand' || ctx === 'dark') {
+    return { main: '#FFFFFF', accent: c.accent, base: 'rgba(255,255,255,0.55)' };
+  }
+  return { main: c.main, accent: c.accent, base: c.base };
+}
+
+function stretchSub(target){
+  const mains = target.querySelectorAll('.ci-main');
+  const subs = target.querySelectorAll('.ci-sub');
+  if (!mains.length) return;
+  let maxW = 0;
+  mains.forEach(m => { const w = m.getBoundingClientRect().width; if (w>maxW) maxW=w; });
+  subs.forEach(s => {
+    s.style.letterSpacing = '0px';
+    const w = s.getBoundingClientRect().width;
+    const gaps = (s.textContent||'').length - 1;
+    if (gaps>0 && w<maxW) s.style.letterSpacing = `${(maxW-w)/gaps}px`;
+  });
+}
+
+// ===== 브랜드 섹션 렌더 =====
+function renderBrands() {
+  const main = document.getElementById('main');
+  const brands = ['fp','jpk','cb'];
+  main.innerHTML = brands.map(bk => {
+    const c = CI_LOGO[bk];
+    return `
+    <section class="brand">
+      <h2>${c.name}</h2>
+      <div class="sub">Main · Accent · Base · Exo 2 + Pretendard</div>
+
+      <div class="colors">
+        <div class="swatch">
+          <div class="chip" style="background:${c.main};"></div>
+          <div class="meta"><div class="role">Main (메인)</div><div class="hex">${c.main}</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:${c.accent};"></div>
+          <div class="meta"><div class="role">Accent (보조)</div><div class="hex">${c.accent}</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:${c.base};"></div>
+          <div class="meta"><div class="role">Base (바닥)</div><div class="hex">${c.base}</div></div>
+        </div>
+      </div>
+
+      <div class="hero" data-brand="${bk}">
+        <div class="hero-card" data-ctx="light" style="background:#fff;"></div>
+        <div class="hero-card" data-ctx="brand" style="background:${c.main};"></div>
+        <div class="hero-card" data-ctx="dark"  style="background:#0D0D0F;"></div>
+      </div>
+
+      <div class="downloads">
+        <h3>Download</h3>
+        <div class="dl-grid" id="dl-${bk}"></div>
+        <button class="btn" onclick="downloadCI('${bk}')">PDF (A4)</button>
+      </div>
+    </section>`;
+  }).join('');
+
+  // hero 카드 각각에 CI 렌더링 — 카드 폭에 맞춰 자동 축소
+  document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
+    const bk = card.closest('[data-brand]').dataset.brand;
+    const ctx = card.dataset.ctx;
+    card.innerHTML = buildCI(96, colorSet(CI_LOGO[bk], ctx), bk);
+  });
+  // 다음 프레임에 크기 측정 후 scale fit
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
+      const inner = card.firstElementChild;
+      if (!inner) return;
+      const cardRect = card.getBoundingClientRect();
+      const innerRect = inner.getBoundingClientRect();
+      const padX = 32, padY = 32;
+      const availW = cardRect.width - padX, availH = cardRect.height - padY;
+      const scaleX = availW / innerRect.width;
+      const scaleY = availH / innerRect.height;
+      const s = Math.min(scaleX, scaleY, 1);
+      if (s < 1) inner.style.transform = `scale(${s})`;
+    });
+  });
+}
+
+// ===== 다운로드 썸네일 =====
+const DL_VARIANTS = {
+  fp: [
+    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
+    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
+    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
+    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+  ],
+  jpk: [
+    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
+    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
+    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
+    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+  ],
+  cb: [
+    { v:'transparent', label:'PNG 투명',    sub:'600px+' },
+    { v:'whiteSquare', label:'PNG 흰배경',  sub:'1024×1024' },
+    { v:'kakaoCI',     label:'카톡 프로필', sub:'CI배경' },
+    { v:'kakaoCIWhite',label:'카톡 프로필', sub:'흰배경' },
+  ],
+};
+
+// 썸네일은 PNG와 동일한 크기(1024)로 렌더 후 CSS scale로 축소
+function buildThumb(bk, v) {
+  const c = CI_LOGO[bk];
+  const light = colorSet(c, 'light');
+  const inlineFs = (bk === 'fp') ? 120 : 260;
+  const kakaoFs  = (bk === 'fp') ? 195 : 230;
+  const wrap = (cls, bg, innerHtml) =>
+    `<div class="dl-thumb ${cls}" style="${bg?`background:${bg};`:''}"><div class="thumb-inner">${innerHtml}</div></div>`;
+  if (v === 'transparent')
+    return wrap('dl-thumb--transparent', '', buildCI(inlineFs, light, bk));
+  if (v === 'whiteSquare')
+    return wrap('', '#fff', buildCI(inlineFs, light, bk));
+  if (v === 'kakaoCI') {
+    const kbg = (bk === 'cb') ? c.main : CI_LOGO.fp.main;
+    const kColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
+    return wrap('dl-thumb--kakao', kbg, buildCI(kakaoFs, kColors, bk, 'kakao'));
+  }
+  if (v === 'kakaoCIWhite')
+    return wrap('dl-thumb--kakao dl-thumb--white', '#fff', buildCI(kakaoFs, light, bk, 'kakao'));
+  return '';
+}
+
+function scaleThumbs() {
+  document.querySelectorAll('.dl-thumb .thumb-inner').forEach(inner => {
+    const thumb = inner.parentElement;
+    const w = thumb.getBoundingClientRect().width;
+    if (w > 0) inner.style.transform = `scale(${w / 1024})`;
+  });
+}
+
+function renderDownloadGrid() {
+  Object.keys(DL_VARIANTS).forEach(bk => {
+    const container = document.getElementById('dl-' + bk);
+    if (!container) return;
+    container.innerHTML = DL_VARIANTS[bk].map(item => `
+      <div class="dl-item" onclick="downloadCIPng('${bk}','${item.v}')" title="클릭 다운로드">
+        ${buildThumb(bk, item.v)}
+        <div class="dl-label">${item.label}<small>${item.sub}</small></div>
+      </div>
+    `).join('');
+  });
+}
+
+// ===== PNG 다운로드 =====
+async function downloadCIPng(brandKey, variant) {
+  await document.fonts.ready;
+  const c = CI_LOGO[brandKey];
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-10000px;top:0;';
+  const target = document.createElement('div');
+  let bgColor = null, filename = '', scale = 2;
+
+  const light = colorSet(c, 'light');
+  const brand = colorSet(c, 'brand');
+  // 인라인 가로형 브랜드별 안전 fontSize (1024 캔버스에 들어가는 최대값)
+  const inlineFs = (brandKey === 'fp') ? 120 : 260;
+  if (variant === 'transparent') {
+    target.style.cssText = 'display:inline-block;padding:48px 64px;';
+    target.innerHTML = buildCI(inlineFs, light, brandKey);
+    bgColor = null; filename = `CI_${c.name}_투명.png`; scale = 3;
+  } else if (variant === 'whiteSquare') {
+    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
+    target.innerHTML = buildCI(inlineFs, light, brandKey);
+    bgColor = '#ffffff'; filename = `CI_${c.name}_흰배경.png`;
+  } else if (variant === 'kakaoCI') {
+    const kakaoBg = (brandKey === 'cb') ? c.main : CI_LOGO.fp.main;
+    const kakaoColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
+    const fs = (brandKey === 'fp') ? 195 : 230;
+    target.style.cssText = `width:1024px;height:1024px;background:${kakaoBg};display:flex;align-items:center;justify-content:center;box-sizing:border-box;`;
+    target.innerHTML = buildCI(fs, kakaoColors, brandKey, 'kakao');
+    bgColor = kakaoBg; filename = `CI_${c.name}_카톡프로필.png`;
+  } else if (variant === 'kakaoCIWhite') {
+    const fs = (brandKey === 'fp') ? 195 : 230;
+    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;box-sizing:border-box;';
+    target.innerHTML = buildCI(fs, light, brandKey, 'kakao');
+    bgColor = '#ffffff'; filename = `CI_${c.name}_카톡프로필_흰배경.png`;
+  }
+  container.appendChild(target);
+  document.body.appendChild(container);
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  try {
+    const canvas = await html2canvas(target, { scale, backgroundColor: bgColor, useCORS: true, logging: false });
+    const a = document.createElement('a');
+    a.download = filename;
+    a.href = canvas.toDataURL('image/png', 1.0);
+    a.click();
+  } finally {
+    container.remove();
+  }
+}
+
+// ===== PDF 다운로드 (A4 흰+검 2페이지) =====
+async function downloadCI(brandKey) {
+  await document.fonts.ready;
+  const c = CI_LOGO[brandKey];
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  for (let i = 0; i < cfg.ids.length; i++) {
-    const el = document.getElementById(cfg.ids[i]);
-    const canvas = await html2canvas(el, { scale: 4, backgroundColor: null });
-    const imgData = canvas.toDataURL('image/png');
-    if (i > 0) pdf.addPage();
-    const w = 297, h = (canvas.height / canvas.width) * w;
-    const y = (210 - h) / 2;
-    pdf.addImage(imgData, 'PNG', 0, y > 0 ? y : 0, w, h);
-  }
-  pdf.save(`CI_${cfg.name}.pdf`);
+  const renderTarget = async (bg, colors) => {
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-10000px;top:0;';
+    const t = document.createElement('div');
+    t.style.cssText = `width:1488px;height:1053px;background:${bg};display:flex;align-items:center;justify-content:center;padding:80px;box-sizing:border-box;`;
+    t.innerHTML = buildCI(360, colors, brandKey);
+    container.appendChild(t); document.body.appendChild(container);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const canvas = await html2canvas(t, { scale:2, backgroundColor:bg, useCORS:true, logging:false });
+    container.remove();
+    return canvas.toDataURL('image/png', 1.0);
+  };
+
+  const lightImg = await renderTarget('#ffffff', colorSet(c, 'light'));
+  pdf.addImage(lightImg, 'PNG', 0, 0, 297, 210);
+  pdf.addPage('a4','landscape');
+  const darkImg = await renderTarget(c.main, colorSet(c, 'brand'));
+  pdf.addImage(darkImg, 'PNG', 0, 0, 297, 210);
+  pdf.save(`CI_${c.name}.pdf`);
 }
+
+// ===== 초기화 =====
+document.addEventListener('DOMContentLoaded', async () => {
+  renderBrands();
+  renderDownloadGrid();
+  scaleThumbs();
+  try { await document.fonts.ready; } catch(_) {}
+  scaleThumbs();
+});
+window.addEventListener('resize', () => scaleThumbs());
 </script>
 
 </body>

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>teamjpk — 명함 제작</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -14,6 +17,7 @@
   --white:  #F5F5F7;
   --sub:    #555555;
   --border: #EBEBED;
+  --ink:    #1A2540;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Pretendard',sans-serif; background:var(--white); padding:32px 20px 80px; color:var(--black); }
@@ -31,20 +35,21 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
   font-family:'Pretendard',sans-serif; flex-shrink:0;
 }
 .bc-logo {
-  align-self:flex-end; transform:scale(0.8); transform-origin:right top;
-  margin-top:-4px; font-size:36px; line-height:1; letter-spacing:-1px; white-space:nowrap;
+  align-self:flex-end;
+  margin-top:-4px; font-size:32px; line-height:1; letter-spacing:-0.8px; white-space:nowrap;
   display:flex; align-items:baseline;
 }
-.bc-logo .t { font-weight:200; color:var(--sub); }
-.bc-logo .b { font-weight:700; color:var(--black); margin-left:3px; }
+.bc-logo { font-family:'Exo 2','Pretendard',sans-serif; }
+.bc-logo .t { font-weight:300; color:var(--sub); font-family:'Exo 2','Pretendard',sans-serif; }
+.bc-logo .b { font-weight:600; color:var(--black); margin-left:3px; font-family:'Exo 2','Pretendard',sans-serif; }
 .bc-bottom { display:flex; flex-direction:column; }
-.bc-user { display:flex; flex-direction:column; gap:1px; margin-bottom:18px; }
-.bc-name { font-size:22px; font-weight:700; color:var(--black); letter-spacing:5px; }
-.bc-title { font-size:14px; font-weight:400; color:var(--sub); letter-spacing:0.3px; }
-.bc-co-section { font-size:13px; line-height:1.4; color:var(--black); font-weight:300; }
-.bc-co-name { font-weight:600; font-size:14px; margin-bottom:3px; display:block; letter-spacing:-0.2px; }
+.bc-user { display:flex; flex-direction:column; gap:1px; margin-bottom:10px; }
+.bc-name { font-size:25px; font-weight:700; color:var(--ink); letter-spacing:5px; }
+.bc-title { font-size:16px; font-weight:400; color:var(--sub); letter-spacing:0.3px; }
+.bc-co-section { font-size:16px; line-height:1.45; color:var(--ink); font-weight:300; }
+.bc-co-name { font-weight:600; font-size:17px; margin-bottom:4px; display:block; letter-spacing:-0.2px; }
 .bc-detail { margin-top:2px; color:var(--sub); }
-.bc-web { font-weight:700; font-size:13px; color:var(--black); margin-top:3px; line-height:1; }
+.bc-web { font-weight:700; font-size:16px; color:var(--ink); margin-top:4px; line-height:1; }
 
 /* 뒷면 명함 */
 .bc-back {
@@ -54,8 +59,8 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 }
 .zodiac-label {
   position:absolute; top:18px; left:20px;
-  font-family:'Pretendard',sans-serif; font-size:9px; font-weight:400;
-  color:rgba(255,255,255,0.28); letter-spacing:3px; text-transform:uppercase;
+  font-family:'Pretendard',sans-serif; font-size:11px; font-weight:400;
+  color:rgba(255,255,255,0.32); letter-spacing:3px; text-transform:uppercase;
 }
 
 /* 폼 */
@@ -72,6 +77,19 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 .btn-back  { background:var(--black); color:#fff; }
 .btn-pdf   { background:var(--navy); color:#fff; }
 #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:600; z-index:1000; display:none; }
+
+/* 줌 컨트롤 */
+.zoom-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+.zb-label { font-size:10px; font-weight:700; color:#aaa; letter-spacing:1px; text-transform:uppercase; margin-right:4px; }
+.zb-btn { padding:5px 10px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; color:var(--black); transition:all 0.15s; }
+.zb-btn:hover { border-color:#bbb; }
+.zb-btn.active { background:var(--black); color:#fff; border-color:var(--black); }
+.zb-slider { flex:1; min-width:100px; accent-color:var(--navy); }
+.zb-value { font-weight:700; font-size:11px; color:var(--black); min-width:42px; text-align:right; }
+.zb-size { color:#888; font-size:10px; letter-spacing:0.3px; width:100%; margin-top:2px; }
+
+.zoom-box { width:calc(500px * var(--card-zoom, 1)); height:calc(280px * var(--card-zoom, 1)); position:relative; flex-shrink:0; transition:width 0.15s, height 0.15s; }
+.zoom-box > .bc, .zoom-box > .bc-back { transform:scale(var(--card-zoom, 1)); transform-origin:top left; transition:transform 0.15s; }
 </style>
 </head>
 <body>
@@ -88,6 +106,18 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
         <option value="cb">carbell</option>
       </select>
     </div>
+  </div>
+
+  <!-- 줌 컨트롤 -->
+  <div class="zoom-bar">
+    <span class="zb-label">미리보기 크기</span>
+    <button type="button" class="zb-btn" data-zoom="0.5">50%</button>
+    <button type="button" class="zb-btn" data-zoom="0.8">실제 (90mm)</button>
+    <button type="button" class="zb-btn active" data-zoom="1">100%</button>
+    <button type="button" class="zb-btn" data-zoom="1.5">150%</button>
+    <input type="range" class="zb-slider" id="zoom-slider" min="40" max="200" step="5" value="100">
+    <span class="zb-value" id="zoom-value">100%</span>
+    <span class="zb-size" id="zoom-size">인쇄 실측 90×50.4mm · A4 한 장에 10장 인쇄 가능</span>
   </div>
 
   <!-- 앞면 -->
@@ -235,9 +265,9 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
         <canvas id="zodiac-canvas" style="position:absolute;inset:0;width:100%;height:100%;" width="500" height="280"></canvas>
         <div class="zodiac-label" id="zodiac-label">— 입사일자 입력 —</div>
         <div class="zodiac-label" id="hire-date-label" style="left:auto;right:20px;text-align:right;"></div>
-        <div style="position:absolute;bottom:27px;right:27px;font-family:'Pretendard',sans-serif;font-size:28px;line-height:1;letter-spacing:-1px;white-space:nowrap;display:flex;align-items:baseline;">
-          <span style="font-weight:200;color:rgba(255,255,255,0.38);">team</span>
-          <span style="font-weight:700;color:rgba(255,255,255,0.88);margin-left:3px;">jpk</span>
+        <div style="position:absolute;bottom:27px;right:27px;font-family:'Exo 2','Pretendard',sans-serif;font-size:32px;line-height:1;letter-spacing:-0.8px;white-space:nowrap;display:flex;align-items:baseline;">
+          <span style="font-weight:300;color:rgba(255,255,255,0.38);">team</span>
+          <span style="font-weight:600;color:rgba(255,255,255,0.88);margin-left:3px;">jpk</span>
         </div>
       </div>
     </div>
@@ -268,7 +298,7 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 const BRANDS = {
   jpk: {
     light: 'team', bold: 'jpk',
-    color: '#0D0D0F', sub: '#555555',
+    color: '#0D0D0F', accent: '#1B2A4A', sub: '#555555',
     darkBold: 'rgba(255,255,255,0.88)', darkLight: 'rgba(255,255,255,0.38)',
     company: '팀제이피케이 주식회사',
     addr: '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호',
@@ -279,7 +309,7 @@ const BRANDS = {
   },
   fp: {
     bold: 'freepass', light: 'mobility',
-    color: '#0D4E8B', sub: '#555555',
+    color: '#1B2A4A', sub: '#555555',
     darkBold: 'rgba(255,255,255,0.88)', darkLight: 'rgba(255,255,255,0.38)',
     company: '프리패스모빌리티 주식회사',
     addr: '서울시 강서구 양천로 53길 30, 서서울모터리움 1004호',
@@ -325,9 +355,9 @@ function switchBrand(key) {
   const backLogo = document.querySelector('#back-card > div:last-child');
   if (backLogo) {
     if (key === 'fp') {
-      backLogo.innerHTML = `<span style="font-weight:700;color:${b.darkBold};">${b.bold}</span><span style="font-weight:200;color:${b.darkLight};margin-left:3px;">${b.light}</span>`;
+      backLogo.innerHTML = `<span style="font-weight:600;color:${b.darkBold};">${b.bold}</span><span style="font-weight:300;color:${b.darkLight};margin-left:3px;">${b.light}</span>`;
     } else {
-      backLogo.innerHTML = `<span style="font-weight:200;color:${b.darkLight};">${b.light}</span><span style="font-weight:700;color:${b.darkBold};margin-left:3px;">${b.bold}</span>`;
+      backLogo.innerHTML = `<span style="font-weight:300;color:${b.darkLight};">${b.light}</span><span style="font-weight:600;color:${b.darkBold};margin-left:3px;">${b.bold}</span>`;
     }
   }
   // 뒷면 배경 — 단색이 아니라 밤하늘 느낌 그라디언트
@@ -490,7 +520,40 @@ function showToast(msg) {
   setTimeout(() => t.style.display = 'none', 2500);
 }
 
+// 줌 컨트롤 초기화
+function initZoom() {
+  document.querySelectorAll('.stage').forEach(stage => {
+    const card = stage.querySelector('.bc, .bc-back');
+    if (!card || card.parentElement.classList.contains('zoom-box')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'zoom-box';
+    card.parentNode.insertBefore(wrap, card);
+    wrap.appendChild(card);
+  });
+  const slider = document.getElementById('zoom-slider');
+  const valueEl = document.getElementById('zoom-value');
+  const buttons = document.querySelectorAll('.zb-btn');
+  function setZoom(z) {
+    document.documentElement.style.setProperty('--card-zoom', z);
+    valueEl.textContent = Math.round(z * 100) + '%';
+    slider.value = Math.round(z * 100);
+    buttons.forEach(b => b.classList.toggle('active', Math.abs(parseFloat(b.dataset.zoom) - z) < 0.005));
+  }
+  slider.addEventListener('input', () => setZoom(slider.value / 100));
+  buttons.forEach(b => b.addEventListener('click', () => setZoom(parseFloat(b.dataset.zoom))));
+}
+
+// 캡처 직전 줌을 1로 리셋 (복구 함수 반환)
+async function resetZoomForCapture() {
+  const root = document.documentElement;
+  const prev = root.style.getPropertyValue('--card-zoom') || '1';
+  root.style.setProperty('--card-zoom', '1');
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  return () => root.style.setProperty('--card-zoom', prev);
+}
+
 window.addEventListener('DOMContentLoaded', function() {
+  initZoom();
   // 앞면 실시간 반영
   const map = {
     'i-name':  ['v-name',  '성함'],
@@ -528,20 +591,25 @@ window.addEventListener('DOMContentLoaded', function() {
   async function dlPNG(el, bgColor, filename) {
     await document.fonts.ready;
     const name = document.getElementById('i-name').value || '성함';
-    let captured;
-    if (bgColor === '#0D0D0F') {
-      captured = await captureBack(2);
-    } else {
-      captured = await html2canvas(el, {
-        scale: 2, useCORS: true, logging: false,
-        backgroundColor: bgColor, width: 500, height: 280
-      });
+    const restore = await resetZoomForCapture();
+    try {
+      let captured;
+      if (bgColor === '#0D0D0F') {
+        captured = await captureBack(2);
+      } else {
+        captured = await html2canvas(el, {
+          scale: 2, useCORS: true, logging: false,
+          backgroundColor: bgColor, width: 500, height: 280
+        });
+      }
+      const a = document.createElement('a');
+      a.download = `teamjpk_${filename}_${name}.png`;
+      a.href = captured.toDataURL('image/png', 1.0);
+      a.click();
+      showToast(`${filename} PNG 저장 완료!`);
+    } finally {
+      restore();
     }
-    const a = document.createElement('a');
-    a.download = `teamjpk_${filename}_${name}.png`;
-    a.href = captured.toDataURL('image/png', 1.0);
-    a.click();
-    showToast(`${filename} PNG 저장 완료!`);
   }
 
   document.getElementById('btn-front').addEventListener('click', () => dlPNG(frontEl, '#ffffff', '앞면'));
@@ -572,25 +640,29 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     showToast('PDF 생성 중... 잠시만요');
+    const restore = await resetZoomForCapture();
+    try {
+      // 앞면
+      const frontCanvas = await html2canvas(frontEl, {
+        scale: 15, useCORS: true, logging: false,
+        backgroundColor: '#ffffff', width: 500, height: 280
+      });
+      pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
+      drawCropMarks(pdf, ox, oy, CW, CH);
 
-    // 앞면
-    const frontCanvas = await html2canvas(frontEl, {
-      scale: 15, useCORS: true, logging: false,
-      backgroundColor: '#ffffff', width: 500, height: 280
-    });
-    pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
-    drawCropMarks(pdf, ox, oy, CW, CH);
+      // 뒷면
+      pdf.addPage([PW, PH], 'landscape');
+      const backCanvas = await captureBack(15);
+      pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
+      drawCropMarks(pdf, ox, oy, CW, CH);
 
-    // 뒷면
-    pdf.addPage([PW, PH], 'landscape');
-    const backCanvas = await captureBack(15);
-    pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH, undefined, 'NONE');
-    drawCropMarks(pdf, ox, oy, CW, CH);
-
-    const brandKey = document.getElementById('brand-select').value;
-    const brandName = BRANDS[brandKey].bold + (BRANDS[brandKey].light || '');
-    pdf.save(`${brandName}_명함_${name}.pdf`);
-    showToast('PDF 저장 완료! (재단선 포함, 앞+뒷면)');
+      const brandKey = document.getElementById('brand-select').value;
+      const brandName = BRANDS[brandKey].bold + (BRANDS[brandKey].light || '');
+      pdf.save(`${brandName}_명함_${name}.pdf`);
+      showToast('PDF 저장 완료! (재단선 포함, 앞+뒷면)');
+    } finally {
+      restore();
+    }
   });
 });
 </script>

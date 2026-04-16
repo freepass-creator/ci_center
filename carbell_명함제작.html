@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>carbell — 명함 제작 (모던)</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -25,7 +28,7 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 /* 앞면 — 모던 미니멀 */
 .bc {
   width:500px; height:280px; background:#fff; border-radius:2px;
-  box-shadow:0 4px 15px rgba(0,0,0,0.06); padding:40px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.06); padding:34px;
   display:flex; flex-direction:column; justify-content:space-between;
   border:1px solid var(--border); box-sizing:border-box; overflow:hidden;
   font-family:'Pretendard',sans-serif; flex-shrink:0;
@@ -34,26 +37,27 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
   display:flex; justify-content:space-between; align-items:flex-start;
 }
 .bc-logo {
-  font-size:20px; line-height:1; letter-spacing:-0.5px;
+  font-size:32px; line-height:1; letter-spacing:-0.8px;
   display:flex; align-items:baseline;
 }
-.bc-logo .t { font-weight:200; color:var(--sub); }
-.bc-logo .b { font-weight:700; color:var(--blue); margin-left:3px; }
+.bc-logo { font-family:'Exo 2','Pretendard',sans-serif; }
+.bc-logo .t { font-weight:300; color:var(--sub); font-family:'Exo 2','Pretendard',sans-serif; }
+.bc-logo .b { font-weight:600; color:var(--blue); margin-left:3px; font-family:'Exo 2','Pretendard',sans-serif; }
 .bc-tagline {
-  font-size:8px; font-weight:300; letter-spacing:2px; text-transform:uppercase;
+  font-size:10px; font-weight:300; letter-spacing:2px; text-transform:uppercase;
   color:#bbb;
 }
 .bc-bottom {}
 .bc-name {
-  font-size:28px; font-weight:700; color:var(--black); letter-spacing:2px;
+  font-size:25px; font-weight:700; color:var(--black); letter-spacing:2px;
   margin-bottom:4px;
 }
 .bc-title {
-  font-size:12px; font-weight:300; color:var(--sub); letter-spacing:0.3px;
-  margin-bottom:24px;
+  font-size:16px; font-weight:300; color:var(--sub); letter-spacing:0.3px;
+  margin-bottom:20px;
 }
 .bc-contact {
-  display:flex; gap:24px; font-size:11px; font-weight:300; color:#666;
+  display:flex; gap:20px; font-size:16px; font-weight:300; color:#666;
 }
 .bc-contact span { letter-spacing:0.2px; }
 
@@ -78,6 +82,19 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 .btn-front { background:var(--black); color:#fff; }
 .btn-pdf { background:var(--blue); color:#fff; }
 #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 24px; border-radius:30px; font-size:13px; font-weight:600; z-index:1000; display:none; }
+
+/* 줌 컨트롤 */
+.zoom-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+.zb-label { font-size:10px; font-weight:700; color:#aaa; letter-spacing:1px; text-transform:uppercase; margin-right:4px; }
+.zb-btn { padding:5px 10px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; color:var(--black); transition:all 0.15s; }
+.zb-btn:hover { border-color:#bbb; }
+.zb-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+.zb-slider { flex:1; min-width:100px; accent-color:var(--blue); }
+.zb-value { font-weight:700; font-size:11px; color:var(--black); min-width:42px; text-align:right; }
+.zb-size { color:#888; font-size:10px; letter-spacing:0.3px; width:100%; margin-top:2px; }
+
+.zoom-box { width:calc(500px * var(--card-zoom, 1)); height:calc(280px * var(--card-zoom, 1)); position:relative; flex-shrink:0; transition:width 0.15s, height 0.15s; }
+.zoom-box > .bc, .zoom-box > .bc-back { transform:scale(var(--card-zoom, 1)); transform-origin:top left; transition:transform 0.15s; }
 </style>
 </head>
 <body>
@@ -87,6 +104,18 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
     <a href="index.html" style="font-size: 11px; font-weight: 400; color: #999; text-decoration: none; letter-spacing: 1px;">← CI Center</a>
     <h2 style="margin-top: 12px;">carbell 명함 제작</h2>
     <p class="sub">모던 · 미니멀 — 자동차 정비 플랫폼</p>
+  </div>
+
+  <!-- 줌 컨트롤 -->
+  <div class="zoom-bar">
+    <span class="zb-label">미리보기 크기</span>
+    <button type="button" class="zb-btn" data-zoom="0.5">50%</button>
+    <button type="button" class="zb-btn" data-zoom="0.8">실제 (90mm)</button>
+    <button type="button" class="zb-btn active" data-zoom="1">100%</button>
+    <button type="button" class="zb-btn" data-zoom="1.5">150%</button>
+    <input type="range" class="zb-slider" id="zoom-slider" min="40" max="200" step="5" value="100">
+    <span class="zb-value" id="zoom-value">100%</span>
+    <span class="zb-size" id="zoom-size">인쇄 실측 92×52mm (재단 후 90×50mm) · A4 한 장에 10장 인쇄 가능</span>
   </div>
 
   <!-- 앞면 -->
@@ -195,16 +224,16 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
         </svg>
 
         <!-- 로고 -->
-        <div style="position:absolute;bottom:30px;right:35px;font-family:'Pretendard',sans-serif;font-size:32px;line-height:1;letter-spacing:-1px;display:flex;align-items:baseline;">
-          <span style="font-weight:200;color:rgba(255,255,255,0.35);">car</span>
-          <span style="font-weight:700;color:rgba(255,255,255,0.85);margin-left:3px;">bell</span>
+        <div style="position:absolute;bottom:30px;right:35px;font-family:'Exo 2','Pretendard',sans-serif;font-size:32px;line-height:1;letter-spacing:-0.8px;display:flex;align-items:baseline;">
+          <span style="font-weight:300;color:rgba(255,255,255,0.35);">car</span>
+          <span style="font-weight:600;color:rgba(255,255,255,0.85);margin-left:3px;">bell</span>
         </div>
         <!-- 태그라인 -->
-        <div style="position:absolute;top:25px;left:30px;font-size:8px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.2);">
+        <div style="position:absolute;top:25px;left:30px;font-size:11px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.28);">
           Auto Care Platform
         </div>
         <!-- 웹사이트 -->
-        <div style="position:absolute;bottom:35px;left:35px;font-size:10px;font-weight:300;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">
+        <div style="position:absolute;bottom:35px;left:35px;font-size:13px;font-weight:300;color:rgba(255,255,255,0.32);letter-spacing:0.5px;">
           carbell.co.kr
         </div>
       </div>
@@ -231,6 +260,37 @@ h2 { font-size:18px; font-weight:700; letter-spacing:-0.5px; color:var(--black);
 <div id="toast">저장되었습니다!</div>
 
 <script>
+// 줌 컨트롤 초기화
+function initZoom() {
+  document.querySelectorAll('.stage').forEach(stage => {
+    const card = stage.querySelector('.bc, .bc-back');
+    if (!card || card.parentElement.classList.contains('zoom-box')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'zoom-box';
+    card.parentNode.insertBefore(wrap, card);
+    wrap.appendChild(card);
+  });
+  const slider = document.getElementById('zoom-slider');
+  const valueEl = document.getElementById('zoom-value');
+  const buttons = document.querySelectorAll('.zb-btn');
+  function setZoom(z) {
+    document.documentElement.style.setProperty('--card-zoom', z);
+    valueEl.textContent = Math.round(z * 100) + '%';
+    slider.value = Math.round(z * 100);
+    buttons.forEach(b => b.classList.toggle('active', Math.abs(parseFloat(b.dataset.zoom) - z) < 0.005));
+  }
+  slider.addEventListener('input', () => setZoom(slider.value / 100));
+  buttons.forEach(b => b.addEventListener('click', () => setZoom(parseFloat(b.dataset.zoom))));
+}
+async function resetZoomForCapture() {
+  const root = document.documentElement;
+  const prev = root.style.getPropertyValue('--card-zoom') || '1';
+  root.style.setProperty('--card-zoom', '1');
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  return () => root.style.setProperty('--card-zoom', prev);
+}
+window.addEventListener('DOMContentLoaded', initZoom);
+
 // 실시간 반영
 document.querySelectorAll('.form input').forEach(input => {
   input.addEventListener('input', () => {
@@ -254,12 +314,17 @@ function showToast(msg) {
 // PNG 다운로드
 document.getElementById('btn-front').addEventListener('click', async () => {
   const el = document.querySelector('#capture-front .bc');
-  const canvas = await html2canvas(el, { scale: 4, backgroundColor: '#ffffff', width: 500, height: 280 });
-  const link = document.createElement('a');
-  link.download = `carbell_명함_앞면.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showToast('앞면 저장 완료!');
+  const restore = await resetZoomForCapture();
+  try {
+    const canvas = await html2canvas(el, { scale: 4, backgroundColor: '#ffffff', width: 500, height: 280 });
+    const link = document.createElement('a');
+    link.download = `carbell_명함_앞면.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('앞면 저장 완료!');
+  } finally {
+    restore();
+  }
 });
 
 // PDF 다운로드
@@ -271,21 +336,26 @@ document.getElementById('btn-pdf').addEventListener('click', async () => {
   const ox = (PW - CW) / 2, oy = (PH - CH) / 2;
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [PW, PH] });
 
-  // 앞면
-  const frontCanvas = await html2canvas(document.querySelector('#capture-front .bc'), {
-    scale: 15, backgroundColor: '#ffffff', width: 500, height: 280
-  });
-  pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
+  const restore = await resetZoomForCapture();
+  try {
+    // 앞면
+    const frontCanvas = await html2canvas(document.querySelector('#capture-front .bc'), {
+      scale: 15, backgroundColor: '#ffffff', width: 500, height: 280
+    });
+    pdf.addImage(frontCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
 
-  // 뒷면
-  pdf.addPage([PW, PH], 'landscape');
-  const backCanvas = await html2canvas(document.getElementById('back-card'), {
-    scale: 15, backgroundColor: null, width: 500, height: 280
-  });
-  pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
+    // 뒷면
+    pdf.addPage([PW, PH], 'landscape');
+    const backCanvas = await html2canvas(document.getElementById('back-card'), {
+      scale: 15, backgroundColor: null, width: 500, height: 280
+    });
+    pdf.addImage(backCanvas.toDataURL('image/png', 1.0), 'PNG', ox, oy, CW, CH);
 
-  pdf.save(`carbell_명함_${name}.pdf`);
-  showToast('PDF 저장 완료!');
+    pdf.save(`carbell_명함_${name}.pdf`);
+    showToast('PDF 저장 완료!');
+  } finally {
+    restore();
+  }
 });
 </script>
 </body>
