@@ -113,11 +113,7 @@ const CI_TEXT = {
     }
   },
   jpk:{
-    default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] },
-    kakao: { type:'stacked',
-      mainParts:[{text:'team',weight:300,role:'base'}],
-      sub:{text:'jpk',weight:600,role:'main'}
-    }
+    default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] }
   },
   cb: {
     default:{ type:'inline', parts:[{text:'car', weight:300,role:'base'},{text:'bell',weight:600,role:'main'}] },
@@ -165,7 +161,37 @@ function colorSet(c, ctx) {
   if (ctx === 'brand' || ctx === 'dark') {
     return { main: '#FFFFFF', accent: c.accent, base: 'rgba(255,255,255,0.55)' };
   }
+  if (ctx === 'accent') {
+    return { main: c.accent, accent: c.accent, base: c.base };
+  }
   return { main: c.main, accent: c.accent, base: c.base };
+}
+
+// 브랜드별 디스플레이 구성 — jpk는 가로만 3종(메인/보조/반전)
+function getVariants(bk) {
+  const c = CI_LOGO[bk];
+  if (bk === 'jpk') {
+    return {
+      horizontal: [
+        { ctx: 'light',  bg: '#fff',    label: '메인' },
+        { ctx: 'accent', bg: '#fff',    label: '보조색 · Navy' },
+        { ctx: 'brand',  bg: c.main,    label: '반전 · 블랙배경' },
+      ],
+      vertical: null
+    };
+  }
+  return {
+    horizontal: [
+      { ctx: 'light', bg: '#fff',     label: '흰배경' },
+      { ctx: 'brand', bg: c.main,     label: '브랜드배경' },
+      { ctx: 'dark',  bg: '#0D0D0F',  label: '블랙배경' },
+    ],
+    vertical: [
+      { ctx: 'light', bg: '#fff',     label: '흰배경' },
+      { ctx: 'brand', bg: c.main,     label: '브랜드배경' },
+      { ctx: 'dark',  bg: '#0D0D0F',  label: '블랙배경' },
+    ]
+  };
 }
 
 function stretchSub(target){
@@ -188,6 +214,19 @@ function renderBrands() {
   const brands = ['fp','jpk','cb'];
   main.innerHTML = brands.map(bk => {
     const c = CI_LOGO[bk];
+    const v = getVariants(bk);
+    const horizRow = v.horizontal.map(h =>
+      `<div class="hero-card" data-ctx="${h.ctx}" data-mode="default" style="background:${h.bg};" title="${h.label}"></div>`
+    ).join('');
+    const vertRow = v.vertical ? `
+      <div class="section-label">Stacked Logo — 세로형 (카톡 프로필 · 앱 아이콘)</div>
+      <div class="hero hero--vert" data-brand="${bk}">
+        ${v.vertical.map(x =>
+          `<div class="hero-card hero-card--vert" data-ctx="${x.ctx}" data-mode="kakao" style="background:${x.bg};" title="${x.label}"></div>`
+        ).join('')}
+      </div>` : '';
+    const pageCount = v.horizontal.length + (v.vertical ? v.vertical.length : 0);
+
     return `
     <section class="brand">
       <h2>${c.name}</h2>
@@ -208,24 +247,16 @@ function renderBrands() {
         </div>
       </div>
 
-      <div class="section-label">Primary Logo — 가로형</div>
+      <div class="section-label">Primary Logo — 가로형 ${bk==='jpk'?'(메인 · 보조 · 반전)':''}</div>
       <div class="hero" data-brand="${bk}">
-        <div class="hero-card" data-ctx="light" data-mode="default" style="background:#fff;"></div>
-        <div class="hero-card" data-ctx="brand" data-mode="default" style="background:${c.main};"></div>
-        <div class="hero-card" data-ctx="dark"  data-mode="default" style="background:#0D0D0F;"></div>
+        ${horizRow}
       </div>
-
-      <div class="section-label">Stacked Logo — 세로형 (카톡 프로필 · 앱 아이콘)</div>
-      <div class="hero hero--vert" data-brand="${bk}">
-        <div class="hero-card hero-card--vert" data-ctx="light" data-mode="kakao" style="background:#fff;"></div>
-        <div class="hero-card hero-card--vert" data-ctx="brand" data-mode="kakao" style="background:${c.main};"></div>
-        <div class="hero-card hero-card--vert" data-ctx="dark"  data-mode="kakao" style="background:#0D0D0F;"></div>
-      </div>
+      ${vertRow}
 
       <div class="downloads">
         <div class="section-label">Download — 파일 다운로드</div>
         <div class="dl-grid" id="dl-${bk}"></div>
-        <button class="btn" onclick="downloadCI('${bk}')">PDF 브랜드 가이드 (A4 · 6p)</button>
+        <button class="btn" onclick="downloadCI('${bk}')">PDF 브랜드 가이드 (A4 · ${pageCount}p)</button>
       </div>
     </section>`;
   }).join('');
@@ -268,7 +299,7 @@ const DL_VARIANTS = {
     { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
     { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
     { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
-    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
+    { v:'kakaoCI',       label:'카톡 프로필',sub:'브랜드배경' },
     { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
   ],
   cb: [
@@ -443,22 +474,16 @@ async function downloadCI(brandKey) {
     return canvas.toDataURL('image/jpeg', 0.95);
   };
 
-  const bgFor = ctx => ctx === 'light' ? '#ffffff' : ctx === 'brand' ? c.main : '#0D0D0F';
-
-  // 페이지 구성: 가로형 3장 + 세로형 3장
-  const pages = [
-    { mode: undefined, ctx: 'light' },
-    { mode: undefined, ctx: 'brand' },
-    { mode: undefined, ctx: 'dark'  },
-    { mode: 'kakao',   ctx: 'light' },
-    { mode: 'kakao',   ctx: 'brand' },
-    { mode: 'kakao',   ctx: 'dark'  },
-  ];
+  // 페이지 구성 — 브랜드별 variants 사용
+  const v = getVariants(brandKey);
+  const pages = [];
+  v.horizontal.forEach(h => pages.push({ mode: undefined, ctx: h.ctx, bg: h.bg }));
+  if (v.vertical) v.vertical.forEach(x => pages.push({ mode: 'kakao', ctx: x.ctx, bg: x.bg }));
 
   for (let i = 0; i < pages.length; i++) {
     const p = pages[i];
     if (i > 0) pdf.addPage('a4', 'landscape');
-    const img = await renderTarget(bgFor(p.ctx), colorSet(c, p.ctx), p.mode);
+    const img = await renderTarget(p.bg, colorSet(c, p.ctx), p.mode);
     pdf.addImage(img, 'JPEG', 0, 0, 297, 210);
   }
 
