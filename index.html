@@ -411,24 +411,26 @@ async function downloadCIPng(brandKey, variant) {
   }
 }
 
-// ===== PDF 다운로드 (A4 흰+검 2페이지) =====
+// ===== PDF 다운로드 (브랜드 가이드북 · 가로형 3 + 세로형 3 = 6페이지) =====
 async function downloadCI(brandKey) {
   await document.fonts.ready;
   const c = CI_LOGO[brandKey];
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  const renderTarget = async (bg, colors) => {
+  // 한 페이지 렌더 — mode(default/kakao), ctx(light/brand/dark)
+  const renderTarget = async (bg, colors, mode) => {
     const container = document.createElement('div');
     container.style.cssText = 'position:fixed;left:-10000px;top:0;';
     const t = document.createElement('div');
     t.style.cssText = `width:1488px;height:1053px;background:${bg};display:flex;align-items:center;justify-content:center;padding:80px;box-sizing:border-box;`;
     const inner = document.createElement('div');
     inner.style.transformOrigin = 'center center';
-    inner.innerHTML = buildCI(360, colors, brandKey);
+    inner.innerHTML = buildCI(360, colors, brandKey, mode);
     t.appendChild(inner);
     container.appendChild(t); document.body.appendChild(container);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    stretchSub(inner);
     const rect = inner.getBoundingClientRect();
     const availW = 1488 - 160, availH = 1053 - 160;
     const s = Math.min(availW / rect.width, availH / rect.height, 1);
@@ -441,11 +443,25 @@ async function downloadCI(brandKey) {
     return canvas.toDataURL('image/png', 1.0);
   };
 
-  const lightImg = await renderTarget('#ffffff', colorSet(c, 'light'));
-  pdf.addImage(lightImg, 'PNG', 0, 0, 297, 210);
-  pdf.addPage('a4','landscape');
-  const darkImg = await renderTarget(c.main, colorSet(c, 'brand'));
-  pdf.addImage(darkImg, 'PNG', 0, 0, 297, 210);
+  const bgFor = ctx => ctx === 'light' ? '#ffffff' : ctx === 'brand' ? c.main : '#0D0D0F';
+
+  // 페이지 구성: 가로형 3장 + 세로형 3장
+  const pages = [
+    { mode: undefined, ctx: 'light' },
+    { mode: undefined, ctx: 'brand' },
+    { mode: undefined, ctx: 'dark'  },
+    { mode: 'kakao',   ctx: 'light' },
+    { mode: 'kakao',   ctx: 'brand' },
+    { mode: 'kakao',   ctx: 'dark'  },
+  ];
+
+  for (let i = 0; i < pages.length; i++) {
+    const p = pages[i];
+    if (i > 0) pdf.addPage('a4', 'landscape');
+    const img = await renderTarget(bgFor(p.ctx), colorSet(c, p.ctx), p.mode);
+    pdf.addImage(img, 'PNG', 0, 0, 297, 210);
+  }
+
   pdf.save(`CI_${c.name}.pdf`);
 }
 
