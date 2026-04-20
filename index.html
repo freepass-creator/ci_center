@@ -21,9 +21,9 @@
   header .kicker { font-size:13px; font-weight:500; letter-spacing:6px; text-transform:uppercase; color:#999; margin-bottom:22px; }
   header h1 { font-size:clamp(64px, 9vw, 120px); font-weight:200; letter-spacing:-3px; line-height:0.95; }
 
-  .brand { margin-bottom:120px; padding-top:64px; border-top:1px solid rgba(0,0,0,0.08); }
-  .brand h2 { font-family:'Exo 2',sans-serif; font-size:clamp(32px, 4vw, 48px); font-weight:600; letter-spacing:-1px; margin-bottom:8px; line-height:1; }
-  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:48px; letter-spacing:0.5px; }
+  .brand { margin-bottom:140px; padding-top:80px; border-top:1px solid rgba(0,0,0,0.08); }
+  .brand h2 { font-family:'Exo 2',sans-serif; font-size:clamp(40px, 5vw, 64px); font-weight:600; letter-spacing:-1.5px; margin-bottom:10px; line-height:1; }
+  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:40px; letter-spacing:0.5px; }
 
   /* 컬러 팔레트 */
   .colors { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:48px; }
@@ -34,23 +34,28 @@
   .swatch .meta .hex { font-weight:700; color:#1a1a1a; margin-top:2px; }
   .swatch .meta .rgb { color:#666; }
 
+  /* 섹션 라벨 */
+  .section-label { font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:#999; margin:32px 0 14px; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,0.06); }
+
   /* CI 3종 히어로 */
-  .hero { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:32px; }
+  .hero { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
   .hero-card { aspect-ratio:4/3; border-radius:14px; display:flex; align-items:center; justify-content:center; padding:16px; border:1px solid rgba(0,0,0,0.06); overflow:hidden; }
+  .hero--vert { margin-bottom:32px; }
+  .hero-card--vert { aspect-ratio:1/1; }
   @media (max-width:720px) { .hero { grid-template-columns:1fr; } }
 
   /* 다운로드 썸네일 */
   .downloads h3 { font-size:11px; font-weight:400; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:14px; }
-  .dl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; margin-bottom:14px; }
-  .dl-item { display:flex; flex-direction:column; gap:8px; cursor:pointer; text-align:center; transition:transform 0.15s; }
-  .dl-item:hover { transform:translateY(-2px); }
-  .dl-thumb { width:100%; aspect-ratio:1; border-radius:10px; border:1px solid rgba(0,0,0,0.08); overflow:hidden; position:relative; }
+  .dl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-bottom:20px; }
+  .dl-item { display:flex; flex-direction:column; gap:10px; cursor:pointer; text-align:center; transition:transform 0.15s; }
+  .dl-item:hover { transform:translateY(-3px); }
+  .dl-thumb { width:100%; aspect-ratio:1; border-radius:14px; border:1px solid rgba(0,0,0,0.08); overflow:hidden; position:relative; box-shadow:0 2px 10px rgba(0,0,0,0.03); }
   .dl-thumb .thumb-inner { width:1024px; height:1024px; display:flex; align-items:center; justify-content:center; transform-origin:top left; }
   .dl-thumb--transparent { background:repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 14px 14px; }
   .dl-thumb--kakao::after { content:''; position:absolute; inset:8%; border:1px dashed rgba(255,255,255,0.35); border-radius:50%; pointer-events:none; }
   .dl-thumb--kakao.dl-thumb--white::after { border-color:rgba(0,0,0,0.12); }
-  .dl-label { font-size:11px; color:#333; font-weight:600; }
-  .dl-label small { display:block; color:#999; font-size:9px; margin-top:2px; font-weight:400; letter-spacing:0.3px; }
+  .dl-label { font-size:13px; color:#333; font-weight:600; }
+  .dl-label small { display:block; color:#999; font-size:10px; margin-top:3px; font-weight:400; letter-spacing:0.3px; }
 
   .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:#1a1a1a; color:#fff; border:none; border-radius:6px; font-family:inherit; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:opacity 0.2s; }
   .btn:hover { opacity:0.75; }
@@ -67,8 +72,12 @@
 <body>
 
 <header>
-  <div class="kicker">CI Center</div>
-  <h1>브랜드 아이덴티티</h1>
+  <div class="kicker">CI Center · Brand Guidelines</div>
+  <h1>브랜드 아이덴티티<br>가이드라인</h1>
+  <p style="font-size:13px;color:#999;line-height:1.8;margin-top:24px;max-width:600px;font-weight:300;">
+    TEAMJPK 그룹의 브랜드 체계를 정의합니다. 로고 형태·컬러 팔레트·타이포그래피·적용 예시를 포함하며,
+    내부 문서·파트너 제출·대외 공유 자료에 일관된 기준으로 사용됩니다.
+  </p>
 </header>
 
 <main id="main"></main>
@@ -103,8 +112,20 @@ const CI_TEXT = {
       sub:{text:'mobility',weight:300,role:'base'}
     }
   },
-  jpk:{ default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] } },
-  cb: { default:{ type:'inline', parts:[{text:'car', weight:300,role:'base'},{text:'bell',weight:600,role:'main'}] } },
+  jpk:{
+    default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] },
+    kakao: { type:'stacked',
+      mainParts:[{text:'team',weight:300,role:'base'}],
+      sub:{text:'jpk',weight:600,role:'main'}
+    }
+  },
+  cb: {
+    default:{ type:'inline', parts:[{text:'car', weight:300,role:'base'},{text:'bell',weight:600,role:'main'}] },
+    kakao: { type:'stacked',
+      mainParts:[{text:'car',weight:300,role:'base'}],
+      sub:{text:'bell',weight:600,role:'main'}
+    }
+  },
 };
 
 function hexWithAlpha(hex, a){
@@ -187,16 +208,24 @@ function renderBrands() {
         </div>
       </div>
 
+      <div class="section-label">Primary Logo — 가로형</div>
       <div class="hero" data-brand="${bk}">
-        <div class="hero-card" data-ctx="light" style="background:#fff;"></div>
-        <div class="hero-card" data-ctx="brand" style="background:${c.main};"></div>
-        <div class="hero-card" data-ctx="dark"  style="background:#0D0D0F;"></div>
+        <div class="hero-card" data-ctx="light" data-mode="default" style="background:#fff;"></div>
+        <div class="hero-card" data-ctx="brand" data-mode="default" style="background:${c.main};"></div>
+        <div class="hero-card" data-ctx="dark"  data-mode="default" style="background:#0D0D0F;"></div>
+      </div>
+
+      <div class="section-label">Stacked Logo — 세로형 (카톡 프로필 · 앱 아이콘)</div>
+      <div class="hero hero--vert" data-brand="${bk}">
+        <div class="hero-card hero-card--vert" data-ctx="light" data-mode="kakao" style="background:#fff;"></div>
+        <div class="hero-card hero-card--vert" data-ctx="brand" data-mode="kakao" style="background:${c.main};"></div>
+        <div class="hero-card hero-card--vert" data-ctx="dark"  data-mode="kakao" style="background:#0D0D0F;"></div>
       </div>
 
       <div class="downloads">
-        <h3>Download</h3>
+        <div class="section-label">Download — 파일 다운로드</div>
         <div class="dl-grid" id="dl-${bk}"></div>
-        <button class="btn" onclick="downloadCI('${bk}')">PDF (A4)</button>
+        <button class="btn" onclick="downloadCI('${bk}')">PDF 브랜드 가이드 (A4 · 2p)</button>
       </div>
     </section>`;
   }).join('');
@@ -205,10 +234,12 @@ function renderBrands() {
   document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
     const bk = card.closest('[data-brand]').dataset.brand;
     const ctx = card.dataset.ctx;
-    card.innerHTML = buildCI(96, colorSet(CI_LOGO[bk], ctx), bk);
+    const mode = card.dataset.mode || undefined;
+    card.innerHTML = buildCI(96, colorSet(CI_LOGO[bk], ctx), bk, mode);
   });
-  // 다음 프레임에 크기 측정 후 scale fit
+  // 다음 프레임에 크기 측정 후 scale fit + 세로형 sub 정렬
   requestAnimationFrame(() => {
+    document.querySelectorAll('.hero-card[data-ctx]').forEach(card => stretchSub(card));
     document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
       const inner = card.firstElementChild;
       if (!inner) return;
