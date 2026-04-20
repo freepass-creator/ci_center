@@ -296,11 +296,11 @@ const DL_VARIANTS = {
     { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
   ],
   jpk: [
-    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
-    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
-    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
-    { v:'kakaoCI',       label:'카톡 프로필',sub:'브랜드배경' },
-    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
+    { v:'svgTransparent',label:'SVG 투명',    sub:'벡터' },
+    { v:'transparent',   label:'PNG 투명',    sub:'고해상' },
+    { v:'whiteSquare',   label:'PNG 흰배경',  sub:'메인 · 블랙' },
+    { v:'accentSquare',  label:'PNG 흰배경',  sub:'보조색 · Navy' },
+    { v:'darkSquare',    label:'PNG 블랙배경',sub:'반전' },
   ],
   cb: [
     { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
@@ -325,6 +325,14 @@ function buildThumb(bk, v) {
     return wrap('dl-thumb--transparent', '', buildCI(inlineFs, light, bk));
   if (v === 'whiteSquare')
     return wrap('', '#fff', buildCI(inlineFs, light, bk));
+  if (v === 'accentSquare') {
+    const accentColors = colorSet(c, 'accent');
+    return wrap('', '#fff', buildCI(inlineFs, accentColors, bk));
+  }
+  if (v === 'darkSquare') {
+    const darkColors = colorSet(c, 'dark');
+    return wrap('', '#0D0D0F', buildCI(inlineFs, darkColors, bk));
+  }
   if (v === 'kakaoCI') {
     const kbg = (bk === 'cb') ? c.main : CI_LOGO.fp.main;
     const kColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
@@ -415,6 +423,16 @@ async function downloadCIPng(brandKey, variant) {
     target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
     target.innerHTML = buildCI(inlineFs, light, brandKey);
     bgColor = '#ffffff'; filename = `CI_${c.name}_흰배경.png`;
+  } else if (variant === 'accentSquare') {
+    const accentColors = colorSet(c, 'accent');
+    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
+    target.innerHTML = buildCI(inlineFs, accentColors, brandKey);
+    bgColor = '#ffffff'; filename = `CI_${c.name}_보조색.png`;
+  } else if (variant === 'darkSquare') {
+    const darkColors = colorSet(c, 'dark');
+    target.style.cssText = 'width:1024px;height:1024px;background:#0D0D0F;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
+    target.innerHTML = buildCI(inlineFs, darkColors, brandKey);
+    bgColor = '#0D0D0F'; filename = `CI_${c.name}_블랙배경.png`;
   } else if (variant === 'kakaoCI') {
     const kakaoBg = (brandKey === 'cb') ? c.main : CI_LOGO.fp.main;
     const kakaoColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
