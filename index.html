@@ -392,9 +392,19 @@ async function downloadCI(brandKey) {
     container.style.cssText = 'position:fixed;left:-10000px;top:0;';
     const t = document.createElement('div');
     t.style.cssText = `width:1488px;height:1053px;background:${bg};display:flex;align-items:center;justify-content:center;padding:80px;box-sizing:border-box;`;
-    t.innerHTML = buildCI(360, colors, brandKey);
+    const inner = document.createElement('div');
+    inner.style.transformOrigin = 'center center';
+    inner.innerHTML = buildCI(360, colors, brandKey);
+    t.appendChild(inner);
     container.appendChild(t); document.body.appendChild(container);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const rect = inner.getBoundingClientRect();
+    const availW = 1488 - 160, availH = 1053 - 160;
+    const s = Math.min(availW / rect.width, availH / rect.height, 1);
+    if (s < 1) {
+      inner.style.transform = `scale(${s})`;
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }
     const canvas = await html2canvas(t, { scale:4, backgroundColor:bg, useCORS:true, logging:false });
     container.remove();
     return canvas.toDataURL('image/png', 1.0);
