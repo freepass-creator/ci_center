@@ -3,651 +3,1174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CI Center</title>
+<title>CI / BI Center</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { font-family:'Exo 2','Pretendard',sans-serif; color:#1a1a1a; background:#fafafa; }
-  body { padding:96px 48px 140px; max-width:1280px; margin:0 auto; }
+:root {
+  --ink: #12141a;
+  --muted: #6b7280;
+  --line: rgba(18,20,26,0.08);
+  --paper: #f7f6f3;
+  --surface: #ffffff;
+  --brand: #0D0D0F;
+  --accent: #1B2A4A;
+  --base: #7F8599;
 
-  header { margin-bottom:120px; }
-  header .kicker { font-size:13px; font-weight:500; letter-spacing:6px; text-transform:uppercase; color:#999; margin-bottom:22px; }
-  header h1 { font-size:clamp(64px, 9vw, 120px); font-weight:200; letter-spacing:-3px; line-height:0.95; }
+  /* 명함 표준 규격 — 재단 90×50mm. 504:280 = 9:5 로 재단비를 정확히 맞춘 픽셀값.
+     1mm = 5.6px. 도련은 캡처할 때만 --bleed 로 넣는다. */
+  --card-w: 504px;
+  --card-h: 280px;
+  --card-pad-y: 28px;
+  --card-pad-x: 30px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Pretendard',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(27,42,74,0.08), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(13,13,15,0.05), transparent 55%),
+    var(--paper);
+  min-height:100vh;
+}
+.page { max-width:1080px; margin:0 auto; padding:40px 24px 100px; overflow-x:clip; }
 
-  .brand { margin-bottom:140px; padding-top:80px; border-top:1px solid rgba(0,0,0,0.08); }
-  .brand h2 { font-family:'Exo 2',sans-serif; font-size:clamp(40px, 5vw, 64px); font-weight:600; letter-spacing:-1.5px; margin-bottom:10px; line-height:1; }
-  .brand .sub { font-size:13px; color:#999; font-weight:400; margin-bottom:40px; letter-spacing:0.5px; }
+/* top */
+.top {
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:24px; flex-wrap:wrap; margin-bottom:48px;
+  padding-bottom:28px; border-bottom:1px solid var(--line);
+}
+.brand-mark {
+  font-family:'Exo 2',sans-serif; font-size:13px; letter-spacing:0.28em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+}
+.top h1 {
+  font-family:'Exo 2',sans-serif; font-weight:300; font-size:clamp(36px,6vw,56px);
+  letter-spacing:-0.04em; line-height:1;
+}
+.top p { margin-top:12px; color:var(--muted); font-size:14px; line-height:1.6; max-width:36ch; }
+.nav { display:flex; gap:8px; }
+.nav a {
+  text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;
+  padding:10px 14px; border:1px solid var(--line); background:var(--surface);
+  transition:background .2s, border-color .2s;
+}
+.nav a:hover { border-color:var(--ink); }
 
-  /* 컬러 팔레트 */
-  .colors { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:48px; }
-  .swatch { display:flex; flex-direction:column; flex:1; min-width:200px; }
-  .swatch .chip { width:100%; aspect-ratio:3/1; border-radius:10px; }
-  .swatch .meta { padding-top:12px; font-size:12px; line-height:1.6; }
-  .swatch .meta .role { color:#999; letter-spacing:1px; text-transform:uppercase; font-size:10px; }
-  .swatch .meta .hex { font-weight:700; color:#1a1a1a; margin-top:2px; }
-  .swatch .meta .rgb { color:#666; }
+/* brand switch */
+.switch-groups {
+  display:flex; flex-direction:column; gap:18px; margin-bottom:32px;
+}
+.switch-group {
+  display:flex; flex-direction:column; gap:8px;
+}
+.switch-label {
+  font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
+  color:var(--muted);
+}
+.switch {
+  display:flex; gap:6px; flex-wrap:wrap;
+}
+.switch button {
+  font-family:'Exo 2','Pretendard',sans-serif; font-size:13px; font-weight:600;
+  padding:11px 14px; border:1px solid var(--line); background:var(--surface);
+  color:var(--muted); cursor:pointer; transition:all .2s;
+}
+.switch button.active {
+  background:var(--brand); color:#fff; border-color:var(--brand);
+}
+.switch button .hint {
+  display:block; font-size:10px; font-weight:500; letter-spacing:0.04em;
+  opacity:0.7; margin-top:2px; font-family:'Pretendard',sans-serif;
+}
+.switch button.active .hint { opacity:0.85; }
 
-  /* 섹션 라벨 */
-  .section-label { font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:#999; margin:32px 0 14px; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,0.06); }
+.ci-note {
+  font-size:13px; color:var(--muted); line-height:1.6; margin:-8px 0 18px; max-width:52ch;
+}
+.ci-logo.ko {
+  font-family:'Pretendard',sans-serif; letter-spacing:-0.04em;
+}
 
-  /* CI 3종 히어로 */
-  .hero { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
-  .hero-card { aspect-ratio:4/3; border-radius:14px; display:flex; align-items:center; justify-content:center; padding:16px; border:1px solid rgba(0,0,0,0.06); overflow:hidden; }
-  .hero--vert { margin-bottom:32px; }
-  .hero-card--vert { aspect-ratio:1/1; }
-  @media (max-width:720px) { .hero { grid-template-columns:1fr; } }
+section { margin-bottom:72px; }
+.sec-head {
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:16px; flex-wrap:wrap; margin-bottom:20px;
+}
+.sec-head h2 {
+  font-family:'Exo 2',sans-serif; font-weight:300; font-size:28px; letter-spacing:-0.03em;
+}
+.sec-head span { font-size:12px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
 
-  /* 다운로드 썸네일 */
-  .downloads h3 { font-size:11px; font-weight:400; letter-spacing:2px; text-transform:uppercase; color:#999; margin-bottom:14px; }
-  .dl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-bottom:20px; }
-  .dl-item { display:flex; flex-direction:column; gap:10px; cursor:pointer; text-align:center; transition:transform 0.15s; }
-  .dl-item:hover { transform:translateY(-3px); }
-  .dl-thumb { width:100%; aspect-ratio:1; border-radius:14px; border:1px solid rgba(0,0,0,0.08); overflow:hidden; position:relative; box-shadow:0 2px 10px rgba(0,0,0,0.03); }
-  .dl-thumb .thumb-inner { width:1024px; height:1024px; display:flex; align-items:center; justify-content:center; transform-origin:top left; }
-  .dl-thumb--transparent { background:repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 14px 14px; }
-  .dl-thumb--kakao::after { content:''; position:absolute; inset:8%; border:1px dashed rgba(255,255,255,0.35); border-radius:50%; pointer-events:none; }
-  .dl-thumb--kakao.dl-thumb--white::after { border-color:rgba(0,0,0,0.12); }
-  .dl-label { font-size:13px; color:#333; font-weight:600; }
-  .dl-label small { display:block; color:#999; font-size:10px; margin-top:3px; font-weight:400; letter-spacing:0.3px; }
+/* CI */
+.colors { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+@media (max-width:640px){ .colors{ grid-template-columns:1fr; } }
+.swatch .chip { height:72px; border:1px solid var(--line); }
+.swatch .meta { padding-top:10px; font-size:12px; line-height:1.5; }
+.swatch .role { color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-size:10px; }
+.swatch .hex { font-weight:700; font-family:'Exo 2',sans-serif; }
 
-  .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:#1a1a1a; color:#fff; border:none; border-radius:6px; font-family:inherit; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:opacity 0.2s; }
-  .btn:hover { opacity:0.75; }
+.ci-row {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;
+}
+@media (max-width:720px){ .ci-row{ grid-template-columns:1fr; } }
+.ci-tile {
+  aspect-ratio:16/10; border:1px solid var(--line); display:flex;
+  align-items:center; justify-content:center; padding:20px; overflow:hidden;
+  background:var(--surface);
+}
+.ci-logo {
+  font-family:'Exo 2',sans-serif; font-size:clamp(28px,4vw,42px);
+  white-space:nowrap; line-height:1; letter-spacing:-0.02em;
+}
+.ci-logo .w300 { font-weight:300; }
+.ci-logo .w600 { font-weight:600; }
+.ci-logo .w700 { font-weight:700; }
+.ci-logo .w800 { font-weight:800; }
 
-  /* 명함 */
-  .cards { padding-top:64px; border-top:1px solid rgba(0,0,0,0.08); }
-  .cards h2 { font-size:clamp(32px, 4vw, 48px); font-weight:200; letter-spacing:-1px; margin-bottom:10px; }
-  .cards p { font-size:14px; color:#999; margin-bottom:32px; }
-  .cards .row { display:flex; gap:12px; flex-wrap:wrap; }
+.actions { display:flex; gap:8px; flex-wrap:wrap; }
+.btn {
+  appearance:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:13px; font-weight:600; padding:12px 16px; background:var(--ink); color:#fff;
+  transition:opacity .2s;
+}
+.btn:hover { opacity:0.82; }
+.btn.ghost { background:transparent; color:var(--ink); border:1px solid var(--line); }
+.btn.accent { background:var(--brand); }
 
-  footer { margin-top:80px; padding-top:32px; border-top:1px solid rgba(0,0,0,0.06); font-size:11px; color:#999; }
+/* card maker */
+.maker {
+  --g: 16px;
+  --pad: 16px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,320px);
+  grid-template-rows:auto auto;
+  gap:var(--g);
+  align-items:stretch;
+}
+.maker > .preview-block:nth-child(1) { grid-column:1; grid-row:1; }
+.maker > .form-col { grid-column:2; grid-row:1 / -1; min-width:0; }
+.maker > .preview-block:nth-child(3) { grid-column:1; grid-row:2; }
+@media (max-width:900px){
+  .maker{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto;
+  }
+  .maker > .preview-block:nth-child(1),
+  .maker > .preview-block:nth-child(3),
+  .maker > .form-col {
+    grid-column:1;
+    grid-row:auto;
+  }
+}
+.preview-block {
+  display:flex; flex-direction:column; gap:8px; min-width:0; height:100%;
+}
+.pane-label {
+  font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--muted); margin:0; min-height:16px; line-height:16px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex-shrink:0;
+}
+.stage {
+  background:var(--surface); border:1px solid var(--line);
+  padding:var(--pad); overflow:hidden;
+  display:flex; justify-content:center; align-items:center;
+  width:100%; box-sizing:border-box; flex:1; min-height:0;
+}
+.card-fit {
+  --s: 1;
+  width:calc(var(--card-w) * var(--s));
+  height:calc(var(--card-h) * var(--s));
+  position:relative; flex-shrink:0; max-width:100%;
+}
+.card-fit > .bc,
+.card-fit > .bc-back {
+  transform:scale(var(--s));
+  transform-origin:top left;
+}
+/* 캡처 중에는 미리보기용 장식을 끈다.
+   html2canvas 는 바깥 box-shadow 를 카드 안쪽 회색 덧칠로 그려서
+   앞면 배경이 흰색이 아니라 rgb(220,220,221) 로 출력된다. */
+.capturing { box-shadow:none !important; outline:none !important; }
+
+.form-col {
+  display:flex; flex-direction:column; gap:8px; min-width:0; height:100%;
+}
+.form {
+  flex:1 1 auto; background:var(--surface); border:1px solid var(--line);
+  padding:var(--pad); display:flex; flex-direction:column; gap:12px;
+  min-height:0; min-width:0; width:100%; max-width:100%;
+  box-sizing:border-box; overflow:hidden;
+}
+
+.bc {
+  --bleed: 0px;
+  width:calc(var(--card-w) + var(--bleed) * 2);
+  height:calc(var(--card-h) + var(--bleed) * 2);
+  background:#fff;
+  /* 미리보기용 실선. border 로 두면 html2canvas 가 출력물에도 찍으므로 outline 사용 */
+  outline:1px solid var(--line); outline-offset:-1px;
+  padding:calc(var(--card-pad-y) + var(--bleed)) calc(var(--card-pad-x) + var(--bleed));
+  display:flex; flex-direction:column; justify-content:space-between;
+  font-family:'Pretendard',sans-serif; flex-shrink:0;
+  box-sizing:border-box;
+  box-shadow:0 10px 28px rgba(18,20,26,0.10), 0 2px 6px rgba(18,20,26,0.05);
+}
+.bc-logo {
+  align-self:flex-end; font-family:'Exo 2',sans-serif; font-size:32px;
+  line-height:1; letter-spacing:-0.8px; white-space:nowrap; display:flex; align-items:baseline;
+}
+.bc-bottom { display:flex; flex-direction:column; }
+.bc-user { display:flex; align-items:baseline; gap:7px; margin-bottom:10px; flex-wrap:wrap; }
+.bc-name { font-size:25px; font-weight:700; color:#1A2540; letter-spacing:5px; margin-right:-5px; }
+.bc-title {
+  font-size:16px; font-weight:400; color:#6f7784; letter-spacing:0.3px;
+  display:inline-flex; align-items:center; gap:0; min-width:0;
+}
+.bc-title .part { line-height:1.2; }
+.bc-title .sep {
+  display:none;
+  width:1px; height:12px; margin:0 6px;
+  background:rgba(26,37,64,0.28); flex-shrink:0; align-self:center;
+  border:none; padding:0; font-size:0; color:transparent;
+}
+.bc-title.has-both .sep { display:inline-block; }
+.bc-title .part:empty { display:none; }
+.bc-co-name { font-weight:600; font-size:17px; margin-bottom:6px; display:block; color:#1A2540; }
+.bc-contact-list { display:flex; flex-direction:column; gap:4px; color:#5c6570; }
+.ci-row-line { display:flex; align-items:center; gap:7px; font-size:14px; line-height:1.3; }
+.ci-ic, .web-ic {
+  width:14px; height:14px; flex-shrink:0; display:block;
+  stroke:#8a929e; stroke-width:2; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.ci-fax { display:inline-flex; align-items:center; gap:7px; margin-left:18px; }
+.bc-web {
+  font-family:'Pretendard',sans-serif;
+  font-size:15px; font-weight:700; margin-top:8px; line-height:1;
+  letter-spacing:-0.3px; color:#1A2540;
+  display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; gap:10px 16px;
+}
+.bc-web .web-item {
+  display:inline-flex; align-items:center; gap:7px; min-width:0;
+}
+.bc-web .web-url { font-weight:700; color:#1A2540; }
+
+.bc-back {
+  --bleed: 0px;
+  width:calc(var(--card-w) + var(--bleed) * 2);
+  height:calc(var(--card-h) + var(--bleed) * 2);
+  position:relative; overflow:hidden; flex-shrink:0;
+  background:radial-gradient(135% 95% at 75% 12%, #18253f 0%, #0a0d15 62%);
+  padding:calc(var(--card-pad-y) + var(--bleed)) calc(var(--card-pad-x) + var(--bleed));
+  box-sizing:border-box;
+  box-shadow:0 10px 28px rgba(18,20,26,0.10), 0 2px 6px rgba(18,20,26,0.05);
+}
+.back-sky {
+  position:absolute; inset:0; width:100%; height:100%;
+  pointer-events:none; z-index:0;
+}
+.back-qr {
+  position:absolute; z-index:1;
+  top:calc(var(--card-pad-y) + var(--bleed));
+  left:calc(var(--card-pad-x) + var(--bleed));
+  background:#fff; padding:6px; line-height:0;
+}
+.back-qr img, .back-qr canvas, .back-qr table { display:block; }
+#back-qr { width:72px; height:72px; }
+.back-brand {
+  position:absolute; z-index:1;
+  right:calc(var(--card-pad-x) + var(--bleed));
+  bottom:calc(var(--card-pad-y) + var(--bleed));
+  font-family:'Exo 2',sans-serif;
+  display:flex; flex-direction:column; align-items:flex-end; text-align:right;
+}
+.back-brand-logo {
+  font-size:32px; line-height:1; letter-spacing:-0.8px; white-space:nowrap;
+  display:flex; align-items:baseline;
+}
+
+.row {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px; width:100%; min-width:0;
+}
+@media (max-width:520px){ .row{ grid-template-columns:minmax(0,1fr); } }
+.input-group {
+  display:flex; flex-direction:column; gap:6px;
+  min-width:0; max-width:100%;
+}
+.input-group label {
+  font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase;
+  line-height:1.2;
+}
+.input-group input,
+.input-group select {
+  display:block; width:100%; max-width:100%; min-width:0;
+  padding:10px 12px; border:1px solid var(--line); background:#fff;
+  font-size:13px; font-family:inherit; color:var(--ink); outline:none;
+  height:40px; box-sizing:border-box;
+}
+.input-group input[type="date"] {
+  min-width:0; max-width:100%;
+  padding-right:8px;
+}
+.input-group input:focus, .input-group select:focus { border-color:var(--brand); }
+.btn-row {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+  gap:8px; margin-top:auto; padding-top:8px; width:100%; min-width:0;
+}
+.btn-row .btn {
+  width:100%; max-width:100%; min-width:0;
+  padding:11px 6px; font-size:12px; box-sizing:border-box;
+}
+.btn-reset {
+  width:100%; margin-top:8px; padding:10px 12px; font-size:12px;
+  color:var(--muted); border-color:var(--line);
+}
+.btn-reset:hover { color:var(--ink); border-color:var(--ink); opacity:1; }
+@media (max-width:520px){ .btn-row{ grid-template-columns:minmax(0,1fr); } }
+
+#toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+  background:rgba(18,20,26,0.9); color:#fff; padding:12px 20px;
+  font-size:13px; font-weight:600; z-index:1000; display:none;
+}
+footer {
+  margin-top:40px; padding-top:24px; border-top:1px solid var(--line);
+  font-size:11px; color:var(--muted);
+}
 </style>
 </head>
 <body>
+<div class="page">
+  <header class="top">
+    <div>
+      <div class="brand-mark">TEAMJPK · CI / BI Center</div>
+      <h1>브랜드 & 명함</h1>
+      <p>법인 CI와 서비스 BI를 확인하고, 같은 페이지에서 명함을 만듭니다.</p>
+    </div>
+    <nav class="nav">
+      <a href="#ci">CI</a>
+      <a href="#card">명함</a>
+    </nav>
+  </header>
 
-<header>
-  <div class="kicker">CI Center · Brand Guidelines</div>
-  <h1>브랜드 아이덴티티<br>가이드라인</h1>
-  <p style="font-size:13px;color:#999;line-height:1.8;margin-top:24px;max-width:600px;font-weight:300;">
-    TEAMJPK 그룹의 브랜드 체계를 정의합니다. 로고 형태·컬러 팔레트·타이포그래피·적용 예시를 포함하며,
-    내부 문서·파트너 제출·대외 공유 자료에 일관된 기준으로 사용됩니다.
-  </p>
-</header>
-
-<main id="main"></main>
-
-<section class="cards">
-  <h2>명함 제작</h2>
-  <p>CI 기준에 맞춘 명함을 직접 입력하고 PDF로 내려받습니다.</p>
-  <div class="row">
-    <a class="btn" href="teamjpk_명함제작.html">클래식 명함 (전 브랜드) →</a>
-    <a class="btn" href="carbell_명함제작.html" style="background:#0D4E8B;">모던 명함 (carbell) →</a>
+  <div class="switch-groups" id="brand-switch">
+    <div class="switch-group">
+      <div class="switch-label">CI · 법인</div>
+      <div class="switch">
+        <button type="button" class="active" data-brand="jpk">teamjpk<span class="hint">팀제이피케이</span></button>
+        <button type="button" data-brand="fp">freepassmobility<span class="hint">프리패스모빌리티</span></button>
+      </div>
+    </div>
+    <div class="switch-group">
+      <div class="switch-label">BI · 브랜드</div>
+      <div class="switch">
+        <button type="button" data-brand="chakan">chakhandeal<span class="hint">착한거래</span></button>
+        <button type="button" data-brand="rcm">renman<span class="hint">렌터카매니저</span></button>
+        <button type="button" data-brand="fpe">freepasserp.com<span class="hint">프리패스이알피닷컴</span></button>
+      </div>
+    </div>
   </div>
-</section>
 
-<footer>© 2026 TEAMJPK · CI Center — Internal Use Only.</footer>
+  <section id="ci">
+    <div class="sec-head">
+      <h2 id="ci-title">teamjpk</h2>
+      <span id="ci-family">CI · 법인</span>
+    </div>
+    <p class="ci-note" id="ci-note"></p>
+    <div class="colors" id="color-swatches"></div>
+    <div class="ci-row" id="ci-tiles"></div>
+    <div class="actions">
+      <button class="btn ghost" type="button" id="dl-svg">SVG</button>
+      <button class="btn ghost" type="button" id="dl-png">PNG 흰배경</button>
+      <button class="btn" type="button" id="dl-pdf">CI PDF</button>
+    </div>
+  </section>
+
+  <section id="card">
+    <div class="sec-head">
+      <h2>명함 제작</h2>
+      <span>앞 · 뒷면 · PDF</span>
+    </div>
+    <div class="maker">
+      <div class="preview-block">
+        <div class="pane-label">앞면</div>
+        <div class="stage" id="capture-front">
+          <div class="card-fit">
+            <div class="bc" id="front-card">
+              <div class="bc-logo" id="front-logo"></div>
+              <div class="bc-bottom">
+                  <div class="bc-user">
+                    <div class="bc-name" id="v-name">성함</div>
+                    <div class="bc-title" id="v-title">
+                      <span class="part" id="v-dept"></span>
+                      <span class="sep" aria-hidden="true"></span>
+                      <span class="part" id="v-role"></span>
+                    </div>
+                  </div>
+                <div>
+                  <span class="bc-co-name" id="v-company"></span>
+                  <div class="bc-contact-list">
+                    <div class="ci-row-line">
+                      <svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><!-- lucide:map-pin --><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span id="v-addr"></span>
+                    </div>
+                    <div class="ci-row-line">
+                      <svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><!-- lucide:phone --><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      <span id="v-phone"></span>
+                      <span class="ci-fax" id="row-fax" style="display:none;">
+                        <svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><!-- lucide:printer --><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+                        <span id="v-fax"></span>
+                      </span>
+                    </div>
+                    <div class="ci-row-line">
+                      <svg class="ci-ic" viewBox="0 0 24 24" aria-hidden="true"><!-- lucide:mail --><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                      <span id="v-email"></span>
+                    </div>
+                  </div>
+                  <div class="bc-web" id="v-web"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-col">
+        <div class="pane-label">입력</div>
+        <form class="form" id="card-form" onsubmit="return false;">
+          <div class="input-group">
+            <label>브랜드</label>
+            <select id="i-brand">
+              <optgroup label="CI · 법인">
+                <option value="jpk">teamjpk (팀제이피케이)</option>
+                <option value="fp">freepassmobility (프리패스모빌리티)</option>
+              </optgroup>
+              <optgroup label="BI · 브랜드">
+                <option value="chakan">chakhandeal (착한거래)</option>
+                <option value="rcm">renman (렌터카매니저)</option>
+                <option value="fpe">freepasserp.com (프리패스이알피닷컴)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="input-group"><label>성명</label><input type="text" id="i-name" placeholder="홍길동" autocomplete="name"></div>
+          <div class="row">
+            <div class="input-group"><label>부서</label><input type="text" id="i-dept" placeholder="운영지원팀"></div>
+            <div class="input-group"><label>직책</label><input type="text" id="i-role" placeholder="선임매니저"></div>
+          </div>
+          <div class="row">
+            <div class="input-group"><label>휴대전화</label><input type="text" id="i-phone" placeholder="010-0000-0000"></div>
+            <div class="input-group"><label>팩스 (선택)</label><input type="text" id="i-fax" placeholder="02-0000-0000"></div>
+          </div>
+          <div class="input-group"><label>이메일</label><input type="text" id="i-email" placeholder="name@teamjpk.com"></div>
+          <div class="input-group"><label>주소</label><input type="text" id="i-addr"></div>
+          <div class="btn-row btn-row-exports">
+            <button class="btn ghost" type="button" id="btn-front">앞면 PNG</button>
+            <button class="btn ghost" type="button" id="btn-back">뒷면 PNG</button>
+            <button class="btn accent" type="button" id="btn-pdf">PDF</button>
+          </div>
+          <button class="btn ghost btn-reset" type="button" id="btn-reset">입력 초기화</button>
+        </form>
+      </div>
+
+      <div class="preview-block">
+        <div class="pane-label">뒷면</div>
+        <div class="stage" id="capture-back">
+          <div class="card-fit">
+            <div class="bc-back" id="back-card">
+              <svg class="back-sky" id="back-sky" width="504" height="280" viewBox="0 0 504 280" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+              <div class="back-qr"><div id="back-qr"></div></div>
+              <div class="back-brand" id="back-brand"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 TEAMJPK · CI / BI Center — Internal Use Only.</footer>
+</div>
+<div id="toast"></div>
 
 <script>
-// ===== CI 설정 =====
-// 3색 체계: main(메인) · accent(보조) · base(바닥=회색)
-const CI_LOGO = {
-  fp:  { name:'freepassmobility', main:'#1B2A4A', accent:'#9EC5F3', base:'#7F93B3' },
-  jpk: { name:'teamjpk',          main:'#0D0D0F', accent:'#1B2A4A', base:'#7F8599' },
-  cb:  { name:'carbell',          main:'#0D4E8B', accent:'#9EC5F3', base:'#7F93B3' },
-};
-const CI_TEXT = {
+const BRANDS = {
+  jpk: {
+    name: '팀제이피케이',
+    engName: 'teamjpk',
+    type: 'CI',
+    companyOf: '팀제이피케이 주식회사',
+    note: '법인 CI. 영문 team 300 · jpk 600 / 국문 팀 300 · 제이피케이 600. Main #0D0D0F · Accent #1B2A4A · Base #7F8599.',
+    main: '#0D0D0F', accent: '#1B2A4A', base: '#7F8599',
+    font: "'Exo 2','Pretendard',sans-serif",
+    ko: false,
+    parts: [{ t:'team', w:300, role:'base' }, { t:'jpk', w:600, role:'main' }],
+    koParts: [{ t:'팀', w:300, role:'base' }, { t:'제이피케이', w:600, role:'main' }],
+    company: '팀제이피케이 주식회사',
+    addr: '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호',
+    web: 'teamjpk.com',
+    email: 'name@teamjpk.com',
+    phone: '010-0000-0000',
+    backBg: 'radial-gradient(135% 95% at 75% 12%, #18253f 0%, #0a0d15 62%)',
+    skyTint: { haze: '#8fa9d4', dim: 0.24 },
+  },
   fp: {
-    default: { type:'inline', parts:[
-      { text:'freepass', weight:600, role:'main' },
-      { text:'mobility', weight:300, role:'base' }
-    ]},
-    kakao: { type:'stacked',
-      mainParts:[{text:'free',weight:600,role:'main'},{text:'pass',weight:600,role:'accent'}],
-      sub:{text:'mobility',weight:300,role:'base'}
-    }
+    name: '프리패스모빌리티',
+    engName: 'freepassmobility',
+    type: 'CI',
+    companyOf: '프리패스모빌리티 주식회사',
+    note: '법인 CI. 영문 freepass 600 · mobility 300 / 국문 프리패스 600 · 모빌리티 300. Main #1B2A4A · Accent #9EC5F3 · Base #7F93B3.',
+    main: '#1B2A4A', accent: '#9EC5F3', base: '#7F93B3',
+    font: "'Exo 2','Pretendard',sans-serif",
+    ko: false,
+    parts: [{ t:'freepass', w:600, role:'main' }, { t:'mobility', w:300, role:'base' }],
+    koParts: [{ t:'프리패스', w:600, role:'main' }, { t:'모빌리티', w:300, role:'base' }],
+    company: '프리패스모빌리티 주식회사',
+    addr: '서울시 강서구 양천로 53길 30, 서서울모터리움 1004호',
+    web: 'freepassmobility.com',
+    email: 'name@teamjpk.com',
+    phone: '02-6956-8835',
+    backBg: 'radial-gradient(135% 95% at 75% 12%, #0e3a6e 0%, #07111f 62%)',
+    skyTint: { haze: '#7fb0e8', dim: 0.38 },
   },
-  jpk:{
-    default:{ type:'inline', parts:[{text:'team',weight:300,role:'base'},{text:'jpk',weight:600,role:'main'}] }
+  chakan: {
+    name: '착한거래',
+    engName: 'chakhandeal',
+    type: 'BI',
+    companyOf: 'teamjpk',
+    note: '서비스 BI (법인: teamjpk). 워드마크 CI/BI 체계(chakhan 600 · deal 300 / 착한 600 · 거래 300). 그린 — Main #15916B · Accent #7EE8C4 · Base #7FA99A · chakhandeal.com',
+    main: '#15916B', accent: '#7EE8C4', base: '#7FA99A',
+    font: "'Exo 2','Pretendard',sans-serif",
+    ko: false,
+    parts: [{ t:'chakhan', w:600, role:'main' }, { t:'deal', w:300, role:'base' }],
+    koParts: [{ t:'착한', w:600, role:'main' }, { t:'거래', w:300, role:'base' }],
+    company: '팀제이피케이 주식회사',
+    addr: '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호',
+    web: 'chakhandeal.com',
+    email: 'name@teamjpk.com',
+    phone: '010-0000-0000',
+    backBg: 'radial-gradient(135% 95% at 75% 12%, #15916b 0%, #0a3328 62%)',
+    skyTint: { haze: '#7ee0c0', dim: 0.62 },
   },
-  cb: {
-    default:{ type:'inline', parts:[{text:'car', weight:300,role:'base'},{text:'bell',weight:600,role:'main'}] },
-    kakao: { type:'stacked',
-      mainParts:[{text:'car',weight:300,role:'base'}],
-      sub:{text:'bell',weight:600,role:'main'}
-    }
+  rcm: {
+    name: '렌터카매니저',
+    engName: 'renman',
+    type: 'BI',
+    companyOf: 'teamjpk',
+    note: '서비스 BI (법인: teamjpk). 영문 ren 600 · man 300 / 국문 렌터카 600 · 매니저 300. Main #141C24 · Accent #3D7EA6 · Base #84919C.',
+    main: '#141C24', accent: '#3D7EA6', base: '#84919C',
+    font: "'Exo 2','Pretendard',sans-serif",
+    ko: false,
+    parts: [{ t:'ren', w:600, role:'main' }, { t:'man', w:300, role:'base' }],
+    koParts: [{ t:'렌터카', w:600, role:'main' }, { t:'매니저', w:300, role:'base' }],
+    company: '팀제이피케이 주식회사',
+    addr: '경기도 김포시 아라육로152번길 45, 국민차매매단지 229호',
+    web: 'renman.kr',
+    email: 'name@teamjpk.com',
+    phone: '010-0000-0000',
+    backBg: 'radial-gradient(135% 95% at 75% 12%, #1c3344 0%, #0a1016 62%)',
+    skyTint: { haze: '#7fb4d4', dim: 0.26 },
+  },
+  fpe: {
+    name: '프리패스이알피닷컴',
+    engName: 'freepasserp.com',
+    type: 'BI',
+    companyOf: 'freepassmobility',
+    note: '서비스 BI (법인: freepassmobility). 영문 freepass 600 · erp.com 300 / 국문 프리패스 600 · 이알피닷컴 300. Accent #5B9FD4.',
+    main: '#1B2A4A', accent: '#5B9FD4', base: '#7F93B3',
+    font: "'Exo 2','Pretendard',sans-serif",
+    ko: false,
+    parts: [{ t:'freepass', w:600, role:'main' }, { t:'erp.com', w:300, role:'base' }],
+    koParts: [{ t:'프리패스', w:600, role:'main' }, { t:'이알피닷컴', w:300, role:'base' }],
+    company: '프리패스모빌리티 주식회사',
+    addr: '서울시 강서구 양천로 53길 30, 서서울모터리움 1004호',
+    web: 'freepasserp.com',
+    email: 'name@teamjpk.com',
+    phone: '02-6956-8835',
+    backBg: 'radial-gradient(135% 95% at 75% 12%, #12345c 0%, #07111f 62%)',
+    skyTint: { haze: '#79a8dc', dim: 0.34 },
   },
 };
 
-function hexWithAlpha(hex, a){
-  const h=hex.replace('#','');
-  const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
-  return `rgba(${r},${g},${b},${a})`;
+let currentBrand = 'jpk';
+
+/* ── 명함 표준 규격 ──────────────────────────────────────
+   재단(trim) 90×50mm · 도련(bleed) 사방 2mm → 작업 94×54mm.
+   504:280 = 9:5 이므로 픽셀 비율이 재단비와 정확히 일치한다(1mm = 5.6px). */
+const CARD = { mmW: 90, mmH: 50, mmBleed: 2, w: 504, h: 280 };
+const PX_PER_MM = CARD.w / CARD.mmW;            // 5.6
+const BLEED_PX = CARD.mmBleed * PX_PER_MM;      // 11.2
+
+function brandFont(b) {
+  return b.font || "'Exo 2','Pretendard',sans-serif";
 }
 
-// ===== CI 렌더링 (Exo 2 + scaleY 0.6 + tight) =====
-// colors = { main, accent, base } — role별로 매핑
-// mode: 'default' (가로 1줄) | 'kakao' (2줄 스택, fp만 해당)
-function buildCI(fontSize, colors, brandKey, mode){
-  const brand = CI_TEXT[brandKey];
-  const t = (mode && brand[mode]) || brand.default;
-  const ff = `'Exo 2','Pretendard',sans-serif`;
-  const roleColor = (role) => colors[role] || colors.main;
-  const gapPx = t.gapEm ? Math.round(fontSize * t.gapEm) : 0;
-  const makeSpan = (p, i) => {
-    const ml = (i > 0 && gapPx) ? `margin-left:${gapPx}px;` : '';
-    return `<span style="font-weight:${p.weight};color:${roleColor(p.role)};${ml}">${p.text}</span>`;
-  };
-  if (t.type === 'inline') {
-    const spans = t.parts.map(makeSpan).join('');
-    return `<div class="ci-main" style="font-family:${ff};font-size:${fontSize}px;white-space:nowrap;text-align:center;">${spans}</div>`;
+function roleColor(b, role, ctx) {
+  if (ctx === 'dark' || ctx === 'brand') {
+    if (role === 'accent') return b.accent;
+    if (role === 'base') return 'rgba(255,255,255,0.55)';
+    return '#FFFFFF';
   }
-  // stacked (카톡 프로필 전용)
-  const mainSpans = t.mainParts.map(makeSpan).join('');
-  const mainL = `<div class="ci-main" style="font-family:${ff};font-size:${fontSize}px;white-space:nowrap;text-align:center;">${mainSpans}</div>`;
-  const subL = t.sub
-    ? `<div class="ci-sub" style="font-family:${ff};font-weight:${t.sub.weight};color:${roleColor(t.sub.role)};font-size:${fontSize}px;text-align:center;">${t.sub.text}</div>`
-    : '';
-  return `<div style="text-align:center;">${mainL}${subL}</div>`;
+  if (ctx === 'accent') return role === 'base' ? b.base : b.accent;
+  if (role === 'accent') return b.accent;
+  if (role === 'base') return b.base;
+  return b.main;
 }
 
-// 컨텍스트별 3색 세트
-function colorSet(c, ctx) {
-  if (ctx === 'brand' || ctx === 'dark') {
-    return { main: '#FFFFFF', accent: c.accent, base: 'rgba(255,255,255,0.55)' };
-  }
-  if (ctx === 'accent') {
-    return { main: c.accent, accent: c.accent, base: c.base };
-  }
-  return { main: c.main, accent: c.accent, base: c.base };
-}
-
-// 브랜드별 디스플레이 구성 — jpk는 가로만 3종(메인/보조/반전)
-function getVariants(bk) {
-  const c = CI_LOGO[bk];
-  if (bk === 'jpk') {
-    return {
-      horizontal: [
-        { ctx: 'light',  bg: '#fff',    label: '메인' },
-        { ctx: 'accent', bg: '#fff',    label: '보조색 · Navy' },
-        { ctx: 'brand',  bg: c.main,    label: '반전 · 블랙배경' },
-      ],
-      vertical: null
-    };
-  }
-  return {
-    horizontal: [
-      { ctx: 'light', bg: '#fff',     label: '흰배경' },
-      { ctx: 'brand', bg: c.main,     label: '브랜드배경' },
-      { ctx: 'dark',  bg: '#0D0D0F',  label: '블랙배경' },
-    ],
-    vertical: [
-      { ctx: 'light', bg: '#fff',     label: '흰배경' },
-      { ctx: 'brand', bg: c.main,     label: '브랜드배경' },
-      { ctx: 'dark',  bg: '#0D0D0F',  label: '블랙배경' },
-    ]
-  };
-}
-
-function stretchSub(target){
-  const mains = target.querySelectorAll('.ci-main');
-  const subs = target.querySelectorAll('.ci-sub');
-  if (!mains.length) return;
-  let maxW = 0;
-  mains.forEach(m => { const w = m.getBoundingClientRect().width; if (w>maxW) maxW=w; });
-  subs.forEach(s => {
-    s.style.letterSpacing = '0px';
-    const w = s.getBoundingClientRect().width;
-    const gaps = (s.textContent||'').length - 1;
-    if (gaps>0 && w<maxW) s.style.letterSpacing = `${(maxW-w)/gaps}px`;
-  });
-}
-
-// ===== 브랜드 섹션 렌더 =====
-function renderBrands() {
-  const main = document.getElementById('main');
-  const brands = ['fp','jpk','cb'];
-  main.innerHTML = brands.map(bk => {
-    const c = CI_LOGO[bk];
-    const v = getVariants(bk);
-    const horizRow = v.horizontal.map(h =>
-      `<div class="hero-card" data-ctx="${h.ctx}" data-mode="default" style="background:${h.bg};" title="${h.label}"></div>`
-    ).join('');
-    const vertRow = v.vertical ? `
-      <div class="section-label">Stacked Logo — 세로형 (카톡 프로필 · 앱 아이콘)</div>
-      <div class="hero hero--vert" data-brand="${bk}">
-        ${v.vertical.map(x =>
-          `<div class="hero-card hero-card--vert" data-ctx="${x.ctx}" data-mode="kakao" style="background:${x.bg};" title="${x.label}"></div>`
-        ).join('')}
-      </div>` : '';
-    const pageCount = v.horizontal.length + (v.vertical ? v.vertical.length : 0);
-
-    return `
-    <section class="brand">
-      <h2>${c.name}</h2>
-      <div class="sub">Main · Accent · Base · Exo 2 + Pretendard</div>
-
-      <div class="colors">
-        <div class="swatch">
-          <div class="chip" style="background:${c.main};"></div>
-          <div class="meta"><div class="role">Main (메인)</div><div class="hex">${c.main}</div></div>
-        </div>
-        <div class="swatch">
-          <div class="chip" style="background:${c.accent};"></div>
-          <div class="meta"><div class="role">Accent (보조)</div><div class="hex">${c.accent}</div></div>
-        </div>
-        <div class="swatch">
-          <div class="chip" style="background:${c.base};"></div>
-          <div class="meta"><div class="role">Base (바닥)</div><div class="hex">${c.base}</div></div>
-        </div>
-      </div>
-
-      <div class="section-label">Primary Logo — 가로형 ${bk==='jpk'?'(메인 · 보조 · 반전)':''}</div>
-      <div class="hero" data-brand="${bk}">
-        ${horizRow}
-      </div>
-      ${vertRow}
-
-      <div class="downloads">
-        <div class="section-label">Download — 파일 다운로드</div>
-        <div class="dl-grid" id="dl-${bk}"></div>
-        <button class="btn" onclick="downloadCI('${bk}')">PDF 브랜드 가이드 (A4 · ${pageCount}p)</button>
-      </div>
-    </section>`;
+function logoPartsHtml(parts, b, ctx, gap = 0) {
+  return parts.map((p, i) => {
+    const ml = i && gap ? `margin-left:${gap}px;` : (i ? 'margin-left:2px;' : '');
+    return `<span style="font-weight:${p.w};color:${roleColor(b,p.role,ctx)};${ml}">${p.t}</span>`;
   }).join('');
+}
 
-  // hero 카드 각각에 CI 렌더링 — 카드 폭에 맞춰 자동 축소
-  document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
-    const bk = card.closest('[data-brand]').dataset.brand;
-    const ctx = card.dataset.ctx;
-    const mode = card.dataset.mode || undefined;
-    card.innerHTML = buildCI(96, colorSet(CI_LOGO[bk], ctx), bk, mode);
+function buildCiHtml(b, ctx, size) {
+  const koClass = b.ko ? ' ko' : '';
+  return `<div class="ci-logo${koClass}" style="font-family:${brandFont(b)};font-size:${size}px;">${logoPartsHtml(b.parts, b, ctx, b.ko ? 2 : 0)}</div>`;
+}
+
+function ciSizeFor(b, base) {
+  const len = b.parts.map(p => p.t).join('').length;
+  if (len >= 8) return Math.round(base * 0.62);
+  if (len >= 6) return Math.round(base * 0.78);
+  return base;
+}
+
+function renderCI() {
+  const b = BRANDS[currentBrand];
+  document.documentElement.style.setProperty('--brand', b.main);
+  document.documentElement.style.setProperty('--accent', b.accent);
+  document.documentElement.style.setProperty('--base', b.base);
+  document.getElementById('ci-title').textContent = b.engName ? `${b.engName} · ${b.name}` : b.name;
+  const typeLabel = b.type === 'CI' ? 'CI · 법인' : `BI · 브랜드 · ${b.companyOf}`;
+  document.getElementById('ci-family').textContent = `${typeLabel} · Main · Accent · Base`;
+  document.getElementById('ci-note').textContent = b.note || '';
+
+  document.getElementById('color-swatches').innerHTML = [
+    ['Main', b.main], ['Accent', b.accent], ['Base', b.base]
+  ].map(([role, hex]) => `
+    <div class="swatch">
+      <div class="chip" style="background:${hex};"></div>
+      <div class="meta"><div class="role">${role}</div><div class="hex">${hex}</div></div>
+    </div>`).join('');
+
+  const tiles = [
+    { ctx:'light', bg:'#fff' },
+    { ctx:'brand', bg:b.main },
+    { ctx:'dark', bg:'#0D0D0F' },
+  ];
+  const tileSize = ciSizeFor(b, 40);
+  const secondary = b.koParts
+    ? { label: `Korean — ${b.name}`, parts: b.koParts, ko: true, font: "'Pretendard',sans-serif" }
+    : b.engParts
+      ? { label: `English — ${b.engName}`, parts: b.engParts, ko: false, font: "'Exo 2','Pretendard',sans-serif" }
+      : null;
+  document.getElementById('ci-tiles').innerHTML = tiles.map(t =>
+    `<div class="ci-tile" style="background:${t.bg};">${buildCiHtml(b, t.ctx, tileSize)}</div>`
+  ).join('') + (secondary ? `
+    <div class="section-label" style="grid-column:1/-1;margin:8px 0 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);">${secondary.label}</div>
+    ${tiles.map(t =>
+      `<div class="ci-tile" style="background:${t.bg};">${buildCiHtml({ ...b, parts: secondary.parts, ko: secondary.ko, font: secondary.font }, t.ctx, ciSizeFor({ parts: secondary.parts }, 36))}</div>`
+    ).join('')}` : '');
+}
+
+/* ── 뒷면 밤하늘 ──────────────────────────────────────────
+   별은 두지 않는다. 브랜드 backBg 위에 대기 결·코너 스크림·비네트만 얹어
+   깊이감을 만든다. 색은 브랜드 skyTint를 따른다. */
+function renderSky(b) {
+  const svg = document.getElementById('back-sky');
+  if (!svg) return;
+  const tint = b.skyTint || { haze: '#8fa9d4' };
+  // backBg의 밝은 지점(75% 12%)이 우상단을 들뜨게 한다.
+  // 브랜드 배경이 밝을수록 스크림을 세게 — 색상(hue)은 두고 밤 밝기로만 내림.
+  const dim = typeof tint.dim === 'number' ? tint.dim : 0.30;
+
+  svg.innerHTML = `
+    <defs>
+      <radialGradient id="sky-band" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${tint.haze}" stop-opacity="0.20"/>
+        <stop offset="45%" stop-color="${tint.haze}" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="${tint.haze}" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sky-veil" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${tint.haze}" stop-opacity="0.09"/>
+        <stop offset="100%" stop-color="${tint.haze}" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sky-vignette" cx="50%" cy="50%" r="72%">
+        <stop offset="52%" stop-color="#000" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0.30"/>
+      </radialGradient>
+      <radialGradient id="sky-dim" cx="75%" cy="12%" r="80%">
+        <stop offset="0%" stop-color="#000" stop-opacity="${dim.toFixed(2)}"/>
+        <stop offset="58%" stop-color="#000" stop-opacity="${(dim * 0.34).toFixed(2)}"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="${CARD.w}" height="${CARD.h}" fill="url(#sky-dim)"/>
+    <ellipse cx="315" cy="108" rx="272" ry="78" fill="url(#sky-band)" transform="rotate(-20 315 108)"/>
+    <ellipse cx="119" cy="226" rx="161" ry="58" fill="url(#sky-veil)"/>
+    <rect width="${CARD.w}" height="${CARD.h}" fill="url(#sky-vignette)"/>`;
+}
+
+/* 워드마크 광학 정렬 ─────────────────────────────────────
+   line-height:1 박스에는 폰트 어센더 공간이 그대로 남는다. 그래서 소문자만 있는
+   워드마크(renman 등)는 위가 13px, 어센더가 있는 쪽은 6px 비어 브랜드마다
+   여백이 달라 보인다. 실제 잉크 경계를 재서 그 차이를 상쇄한다. */
+function inkOffsets(parts, family, size) {
+  const ctx = inkOffsets._ctx || (inkOffsets._ctx = document.createElement('canvas').getContext('2d'));
+  let asc = 0, desc = 0, fAsc = 0, fDesc = 0;
+  parts.forEach(p => {
+    ctx.font = `${p.w} ${size}px ${family}`;
+    const m = ctx.measureText(p.t);
+    asc = Math.max(asc, m.actualBoundingBoxAscent);
+    desc = Math.max(desc, m.actualBoundingBoxDescent);
+    fAsc = Math.max(fAsc, m.fontBoundingBoxAscent);
+    fDesc = Math.max(fDesc, m.fontBoundingBoxDescent);
   });
-  // 다음 프레임에 크기 측정 후 scale fit + 세로형 sub 정렬
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.hero-card[data-ctx]').forEach(card => stretchSub(card));
-    document.querySelectorAll('.hero-card[data-ctx]').forEach(card => {
-      const inner = card.firstElementChild;
-      if (!inner) return;
-      const cardRect = card.getBoundingClientRect();
-      const innerRect = inner.getBoundingClientRect();
-      const padX = 32, padY = 32;
-      const availW = cardRect.width - padX, availH = cardRect.height - padY;
-      const scaleX = availW / innerRect.width;
-      const scaleY = availH / innerRect.height;
-      const s = Math.min(scaleX, scaleY, 1);
-      if (s < 1) inner.style.transform = `scale(${s})`;
+  if (!fAsc && !fDesc) return { top: 0, bottom: 0 };   // 폰트 로딩 전
+  const baseline = (size - (fAsc + fDesc)) / 2 + fAsc; // line-height:1 기준 베이스라인
+  return { top: baseline - asc, bottom: size - (baseline + desc) };
+}
+
+function setFrontLogo(b) {
+  const el = document.getElementById('front-logo');
+  el.style.fontFamily = brandFont(b);
+  const size = b.ko ? 28 : 32;
+  el.style.fontSize = size + 'px';
+  // 잉크 윗선을 카드 상단 여백에 정확히 맞춘다
+  el.style.marginTop = (-inkOffsets(b.parts, brandFont(b), size).top).toFixed(2) + 'px';
+  el.innerHTML = b.parts.map((p, i) => {
+    const color = p.role === 'main' ? b.main : p.role === 'accent' ? b.accent : '#555555';
+    const ml = i ? (b.ko ? 'margin-left:2px;' : 'margin-left:3px;') : '';
+    return `<span style="font-weight:${p.w};color:${color};${ml}">${p.t}</span>`;
+  }).join('');
+}
+
+function setBackLogo(b) {
+  const el = document.getElementById('back-brand');
+  // freepassmobility 명함 뒷면은 ERP BI(freepasserp.com) 사용
+  const parts = currentBrand === 'fp'
+    ? BRANDS.fpe.parts
+    : b.parts;
+  const font = currentBrand === 'fp' ? brandFont(BRANDS.fpe) : brandFont(b);
+  const ko = currentBrand === 'fp' ? false : b.ko;
+  const size = ko ? 28 : 32;
+  // 잉크 아랫선을 카드 하단 여백에 맞춘다 (디센더 유무로 브랜드마다 뜨는 차이 상쇄)
+  const drop = inkOffsets(parts, font, size).bottom;
+  el.innerHTML = `<div class="back-brand-logo" style="font-family:${font};${ko ? 'font-size:28px;' : ''}margin-bottom:${(-drop).toFixed(2)}px;">${parts.map((p, i) => {
+    const color = p.role === 'main' ? 'rgba(255,255,255,0.88)'
+      : p.role === 'accent' ? (currentBrand === 'fp' ? BRANDS.fpe.accent : b.accent)
+      : 'rgba(255,255,255,0.38)';
+    const ml = i ? (ko ? 'margin-left:2px;' : 'margin-left:3px;') : '';
+    return `<span style="font-weight:${p.w};color:${color};${ml}">${p.t}</span>`;
+  }).join('')}</div>`;
+}
+
+/* 뒷면 QR은 브랜드와 무관하게 항상 여기로 보낸다 */
+const BACK_QR_URL = 'https://freepasserp.com';
+
+function updateBackQr() {
+  const host = document.getElementById('back-qr');
+  if (!host || typeof QRCode === 'undefined') return;
+  host.innerHTML = '';
+  new QRCode(host, {
+    text: BACK_QR_URL,
+    width: 72,
+    height: 72,
+    colorDark: '#12141a',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
+function lucideIcon(name, cls) {
+  // Lucide paths (MIT) — renman / freepasserp4 와 동일 계열
+  const paths = {
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    'layout-grid': '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  };
+  return `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || ''}</svg>`;
+}
+
+function setWeb(b) {
+  const web = document.getElementById('v-web');
+  web.removeAttribute('style');
+  const icHome = lucideIcon('globe', 'web-ic');
+  const icPlatform = lucideIcon('layout-grid', 'web-ic');
+  if (currentBrand === 'fp') {
+    web.innerHTML = `
+      <span class="web-item" title="홈페이지">${icHome}<span class="web-url">freepassmobility.com</span></span>
+      <span class="web-item" title="플랫폼">${icPlatform}<span class="web-url">freepasserp.com</span></span>`;
+    return;
+  }
+  web.innerHTML = `<span class="web-item">${icHome}<span class="web-url">${b.web}</span></span>`;
+}
+
+function applyBrand(key, syncSelect = true) {
+  if (!BRANDS[key]) key = 'jpk';
+  currentBrand = key;
+  const b = BRANDS[key];
+  document.querySelectorAll('#brand-switch button[data-brand]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.brand === key);
+  });
+  if (syncSelect) document.getElementById('i-brand').value = key;
+
+  renderCI();
+  setFrontLogo(b);
+  setBackLogo(b);
+  setWeb(b);
+  updateBackQr();
+  document.getElementById('v-company').textContent = b.company;
+  document.getElementById('back-card').style.background = b.backBg;
+  renderSky(b);
+
+  const phone = document.getElementById('i-phone');
+  const email = document.getElementById('i-email');
+  const addr = document.getElementById('i-addr');
+  if (!phone.value) document.getElementById('v-phone').textContent = b.phone;
+  if (!email.value) document.getElementById('v-email').textContent = b.email;
+  if (!addr.value) document.getElementById('v-addr').textContent = b.addr;
+  email.placeholder = b.email;
+  addr.placeholder = b.addr;
+  phone.placeholder = b.phone;
+  saveDraft();
+}
+
+const DRAFT_KEY = 'ci_center_draft_v1';
+const DRAFT_FIELDS = ['i-name', 'i-dept', 'i-role', 'i-phone', 'i-fax', 'i-email', 'i-addr'];
+let draftReady = false;
+
+function saveDraft() {
+  if (!draftReady) return;
+  try {
+    const fields = {};
+    DRAFT_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) fields[id] = el.value;
     });
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ brand: currentBrand, fields }));
+  } catch (_) {}
+}
+
+function loadDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+  } catch (_) {
+    return null;
+  }
+}
+
+function applyDraftFields(fields) {
+  if (!fields) return;
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || fields[id] == null) return;
+    el.value = fields[id];
+  });
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dispatchEvent(new Event('input'));
   });
 }
 
-// ===== 다운로드 썸네일 =====
-const DL_VARIANTS = {
-  fp: [
-    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
-    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
-    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
-    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
-    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
-  ],
-  jpk: [
-    { v:'svgTransparent',label:'SVG 투명',    sub:'벡터' },
-    { v:'transparent',   label:'PNG 투명',    sub:'고해상' },
-    { v:'whiteSquare',   label:'PNG 흰배경',  sub:'메인 · 블랙' },
-    { v:'accentSquare',  label:'PNG 흰배경',  sub:'보조색 · Navy' },
-    { v:'darkSquare',    label:'PNG 블랙배경',sub:'반전' },
-  ],
-  cb: [
-    { v:'svgTransparent',label:'SVG 투명',  sub:'벡터' },
-    { v:'transparent',   label:'PNG 투명',  sub:'고해상' },
-    { v:'whiteSquare',   label:'PNG 흰배경',sub:'1024×1024' },
-    { v:'kakaoCI',       label:'카톡 프로필',sub:'CI배경' },
-    { v:'kakaoCIWhite',  label:'카톡 프로필',sub:'흰배경' },
-  ],
-};
-
-// 썸네일은 PNG와 동일한 크기(1024)로 렌더 후 CSS scale로 축소
-function buildThumb(bk, v) {
-  const c = CI_LOGO[bk];
-  const light = colorSet(c, 'light');
-  const inlineFs = (bk === 'fp') ? 120 : 260;
-  const kakaoFs  = (bk === 'fp') ? 195 : 230;
-  const wrap = (cls, bg, innerHtml) =>
-    `<div class="dl-thumb ${cls}" style="${bg?`background:${bg};`:''}"><div class="thumb-inner">${innerHtml}</div></div>`;
-  if (v === 'svgTransparent')
-    return wrap('dl-thumb--transparent', '', `<div style="font-family:'Exo 2';font-size:11px;color:#666;letter-spacing:2px;">SVG</div>${buildCI(inlineFs, light, bk)}`);
-  if (v === 'transparent')
-    return wrap('dl-thumb--transparent', '', buildCI(inlineFs, light, bk));
-  if (v === 'whiteSquare')
-    return wrap('', '#fff', buildCI(inlineFs, light, bk));
-  if (v === 'accentSquare') {
-    const accentColors = colorSet(c, 'accent');
-    return wrap('', '#fff', buildCI(inlineFs, accentColors, bk));
-  }
-  if (v === 'darkSquare') {
-    const darkColors = colorSet(c, 'dark');
-    return wrap('', '#0D0D0F', buildCI(inlineFs, darkColors, bk));
-  }
-  if (v === 'kakaoCI') {
-    const kbg = (bk === 'cb') ? c.main : CI_LOGO.fp.main;
-    const kColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
-    return wrap('dl-thumb--kakao', kbg, buildCI(kakaoFs, kColors, bk, 'kakao'));
-  }
-  if (v === 'kakaoCIWhite')
-    return wrap('dl-thumb--kakao dl-thumb--white', '#fff', buildCI(kakaoFs, light, bk, 'kakao'));
-  return '';
-}
-
-// ===== SVG 생성 (벡터, 편집 가능) =====
-function generateSvg(brandKey) {
-  const c = CI_LOGO[brandKey];
-  const t = CI_TEXT[brandKey].default;
-  const fontSize = 160;
-  const roleColor = role => role==='main' ? c.main : role==='accent' ? c.accent : c.base;
-  let tspans = '';
-  if (t.type === 'inline') {
-    tspans = t.parts.map(p =>
-      `<tspan font-weight="${p.weight}" fill="${roleColor(p.role)}">${p.text}</tspan>`
-    ).join('');
-  }
-  const w = 1400, h = 400;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
-  <defs>
-    <style><![CDATA[
-      @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;400;500;600;700&display=swap');
-      @import url('https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css');
-      text { font-family:'Exo 2','Pretendard',sans-serif; }
-    ]]></style>
-  </defs>
-  <text x="50%" y="58%" text-anchor="middle" dominant-baseline="middle" font-size="${fontSize}">${tspans}</text>
+/* —— CI downloads —— */
+function generateSvg(key) {
+  const b = BRANDS[key];
+  const tspans = b.parts.map(p => {
+    const fill = p.role === 'main' ? b.main : b.base;
+    return `<tspan font-weight="${p.w}" fill="${fill}">${p.t}</tspan>`;
+  }).join('');
+  const fontImport = b.ko
+    ? `@import url('https://cdn.jsdelivr.net/npm/pretendard@latest/dist/web/static/pretendard.min.css');`
+    : `@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;600;700&display=swap');`;
+  const family = brandFont(b);
+  const fs = b.ko ? 140 : 160;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 400" width="1400" height="400">
+  <defs><style>${fontImport}
+  text{font-family:${family};}</style></defs>
+  <text x="50%" y="58%" text-anchor="middle" dominant-baseline="middle" font-size="${fs}">${tspans}</text>
 </svg>`;
 }
 
-function downloadSvg(brandKey) {
-  const c = CI_LOGO[brandKey];
-  const svg = generateSvg(brandKey);
-  const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.download = `CI_${c.name}.svg`;
-  a.href = url;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function scaleThumbs() {
-  document.querySelectorAll('.dl-thumb .thumb-inner').forEach(inner => {
-    const thumb = inner.parentElement;
-    const w = thumb.getBoundingClientRect().width;
-    if (w > 0) inner.style.transform = `scale(${w / 1024})`;
-  });
-}
-
-function renderDownloadGrid() {
-  Object.keys(DL_VARIANTS).forEach(bk => {
-    const container = document.getElementById('dl-' + bk);
-    if (!container) return;
-    container.innerHTML = DL_VARIANTS[bk].map(item => `
-      <div class="dl-item" onclick="downloadCIPng('${bk}','${item.v}')" title="클릭 다운로드">
-        ${buildThumb(bk, item.v)}
-        <div class="dl-label">${item.label}<small>${item.sub}</small></div>
-      </div>
-    `).join('');
-  });
-}
-
-// ===== PNG/SVG 다운로드 =====
-async function downloadCIPng(brandKey, variant) {
-  if (variant === 'svgTransparent') return downloadSvg(brandKey);
+async function downloadPngWhite() {
   await document.fonts.ready;
-  const c = CI_LOGO[brandKey];
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;left:-10000px;top:0;';
-  const target = document.createElement('div');
-  let bgColor = null, filename = '', scale = 2;
-
-  const light = colorSet(c, 'light');
-  const brand = colorSet(c, 'brand');
-  // 인라인 가로형 브랜드별 안전 fontSize (1024 캔버스에 들어가는 최대값)
-  const inlineFs = (brandKey === 'fp') ? 120 : 260;
-  if (variant === 'transparent') {
-    target.style.cssText = 'display:inline-block;padding:48px 64px;';
-    target.innerHTML = buildCI(inlineFs, light, brandKey);
-    bgColor = null; filename = `CI_${c.name}_투명.png`; scale = 3;
-  } else if (variant === 'whiteSquare') {
-    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
-    target.innerHTML = buildCI(inlineFs, light, brandKey);
-    bgColor = '#ffffff'; filename = `CI_${c.name}_흰배경.png`;
-  } else if (variant === 'accentSquare') {
-    const accentColors = colorSet(c, 'accent');
-    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
-    target.innerHTML = buildCI(inlineFs, accentColors, brandKey);
-    bgColor = '#ffffff'; filename = `CI_${c.name}_보조색.png`;
-  } else if (variant === 'darkSquare') {
-    const darkColors = colorSet(c, 'dark');
-    target.style.cssText = 'width:1024px;height:1024px;background:#0D0D0F;display:flex;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;';
-    target.innerHTML = buildCI(inlineFs, darkColors, brandKey);
-    bgColor = '#0D0D0F'; filename = `CI_${c.name}_블랙배경.png`;
-  } else if (variant === 'kakaoCI') {
-    const kakaoBg = (brandKey === 'cb') ? c.main : CI_LOGO.fp.main;
-    const kakaoColors = { main:'#FFFFFF', accent:c.accent, base:'rgba(255,255,255,0.55)' };
-    const fs = (brandKey === 'fp') ? 195 : 230;
-    target.style.cssText = `width:1024px;height:1024px;background:${kakaoBg};display:flex;align-items:center;justify-content:center;box-sizing:border-box;`;
-    target.innerHTML = buildCI(fs, kakaoColors, brandKey, 'kakao');
-    bgColor = kakaoBg; filename = `CI_${c.name}_카톡프로필.png`;
-  } else if (variant === 'kakaoCIWhite') {
-    const fs = (brandKey === 'fp') ? 195 : 230;
-    target.style.cssText = 'width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;box-sizing:border-box;';
-    target.innerHTML = buildCI(fs, light, brandKey, 'kakao');
-    bgColor = '#ffffff'; filename = `CI_${c.name}_카톡프로필_흰배경.png`;
-  }
-  container.appendChild(target);
-  document.body.appendChild(container);
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const b = BRANDS[currentBrand];
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:-9999px;top:0;width:1024px;height:1024px;background:#fff;display:flex;align-items:center;justify-content:center;';
+  box.innerHTML = buildCiHtml(b, 'light', ciSizeFor(b, currentBrand === 'fp' || currentBrand === 'fpe' ? 120 : 220));
+  document.body.appendChild(box);
   try {
-    const canvas = await html2canvas(target, { scale, backgroundColor: bgColor, useCORS: true, logging: false });
+    const canvas = await html2canvas(box, { scale:2, backgroundColor:'#ffffff', logging:false });
     const a = document.createElement('a');
-    a.download = filename;
-    a.href = canvas.toDataURL('image/png', 1.0);
+    a.download = `CI_${b.name}_흰배경.png`;
+    a.href = canvas.toDataURL('image/png');
     a.click();
-  } finally {
-    container.remove();
-  }
+  } finally { box.remove(); }
 }
 
-// ===== PDF 다운로드 (브랜드 가이드북 · 가로형 3 + 세로형 3 = 6페이지) =====
-async function downloadCI(brandKey) {
+async function downloadCiPdf() {
   await document.fonts.ready;
-  const c = CI_LOGO[brandKey];
+  const b = BRANDS[currentBrand];
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-  // 한 페이지 렌더 — mode(default/kakao), ctx(light/brand/dark)
-  const renderTarget = async (bg, colors, mode) => {
-    const container = document.createElement('div');
-    container.style.cssText = 'position:fixed;left:-10000px;top:0;';
-    const t = document.createElement('div');
-    t.style.cssText = `width:1488px;height:1053px;background:${bg};display:flex;align-items:center;justify-content:center;padding:80px;box-sizing:border-box;`;
-    const inner = document.createElement('div');
-    inner.style.transformOrigin = 'center center';
-    inner.innerHTML = buildCI(360, colors, brandKey, mode);
-    t.appendChild(inner);
-    container.appendChild(t); document.body.appendChild(container);
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    stretchSub(inner);
-    const rect = inner.getBoundingClientRect();
-    const availW = 1488 - 160, availH = 1053 - 160;
-    const s = Math.min(availW / rect.width, availH / rect.height, 1);
-    if (s < 1) {
-      inner.style.transform = `scale(${s})`;
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    }
-    const canvas = await html2canvas(t, { scale:2, backgroundColor:bg, useCORS:true, logging:false });
-    container.remove();
-    return canvas.toDataURL('image/jpeg', 0.95);
-  };
-
-  // 페이지 구성 — 브랜드별 variants 사용
-  const v = getVariants(brandKey);
-  const pages = [];
-  v.horizontal.forEach(h => pages.push({ mode: undefined, ctx: h.ctx, bg: h.bg }));
-  if (v.vertical) v.vertical.forEach(x => pages.push({ mode: 'kakao', ctx: x.ctx, bg: x.bg }));
-
+  const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const pages = [
+    { ctx:'light', bg:'#ffffff' },
+    { ctx:'brand', bg:b.main },
+    { ctx:'dark', bg:'#0D0D0F' },
+  ];
   for (let i = 0; i < pages.length; i++) {
     const p = pages[i];
-    if (i > 0) pdf.addPage('a4', 'landscape');
-    const img = await renderTarget(p.bg, colorSet(c, p.ctx), p.mode);
-    pdf.addImage(img, 'JPEG', 0, 0, 297, 210);
+    const box = document.createElement('div');
+    box.style.cssText = `position:fixed;left:-9999px;top:0;width:1488px;height:1053px;background:${p.bg};display:flex;align-items:center;justify-content:center;`;
+    box.innerHTML = buildCiHtml(b, p.ctx, ciSizeFor(b, 280));
+    document.body.appendChild(box);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const canvas = await html2canvas(box, { scale:2, backgroundColor:p.bg, logging:false });
+    box.remove();
+    if (i) pdf.addPage('a4', 'landscape');
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 297, 210);
   }
-
-  pdf.save(`CI_${c.name}.pdf`);
+  pdf.save(`CI_${b.name}.pdf`);
 }
 
-// ===== 초기화 =====
-// ===== 제안 섹션 =====
-function renderProposal() {
-  const root = document.getElementById('proposal-sections');
-  if (!root) return;
-  const brands = ['fp','jpk','cb'];
-
-  // 1. 이니셜 심볼 (F, T, C)
-  const initialHtml = brands.map(bk => {
-    const c = CI_LOGO[bk];
-    const letter = bk === 'fp' ? 'F' : bk === 'jpk' ? 'J' : 'C';
-    const variants = [
-      { shape:'circle', bg:c.main, color:'#fff', label:'원 · 메인' },
-      { shape:'square', bg:c.main, color:'#fff', label:'사각 · 메인' },
-      { shape:'circle', bg:'#fff', color:c.main, border:c.main, label:'원 · 아웃라인' },
-      { shape:'square', bg:c.accent, color:c.main, label:'사각 · 보조' },
-    ];
-    const tiles = variants.map(v => `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-        <div style="width:120px;height:120px;background:${v.bg};border-radius:${v.shape==='circle'?'50%':'24px'};display:flex;align-items:center;justify-content:center;${v.border?`border:2px solid ${v.border};`:''}">
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${v.color};font-size:64px;line-height:1;">${letter}</span>
-        </div>
-        <div style="font-size:10px;color:#999;">${v.label}</div>
-      </div>`).join('');
-    return `
-      <div>
-        <div style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#333;font-size:14px;margin-bottom:14px;">${c.name}</div>
-        <div style="display:flex;gap:18px;flex-wrap:wrap;">${tiles}</div>
-      </div>`;
-  }).join('');
-
-  // 2. 앵커 도트 (freepass 계열)
-  const anchorHtml = brands.map(bk => {
-    const c = CI_LOGO[bk];
-    const text = bk === 'fp' ? 'freepass' : bk === 'jpk' ? 'teamjpk' : 'carbell';
-    return `
-      <div style="display:flex;gap:24px;flex-wrap:wrap;">
-        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
-          <div style="width:16px;height:16px;border-radius:50%;background:${c.main};"></div>
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;">${text}</span>
-        </div>
-        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
-          <div style="width:16px;height:16px;border-radius:50%;background:${c.accent};"></div>
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;">${text}</span>
-        </div>
-      </div>`;
-  }).join('');
-
-  // 3. 모션 액센트 (› 기호)
-  const motionHtml = brands.map(bk => {
-    const c = CI_LOGO[bk];
-    const text = bk === 'fp' ? 'freepass' : bk === 'jpk' ? 'teamjpk' : 'carbell';
-    return `
-      <div style="display:flex;gap:24px;flex-wrap:wrap;">
-        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:baseline;gap:10px;">
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;">${text}</span>
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:300;color:${c.accent};font-size:36px;line-height:1;">›</span>
-        </div>
-        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:baseline;gap:10px;">
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;">${text}</span>
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:300;color:${c.accent};font-size:36px;line-height:1;">›</span>
-        </div>
-      </div>`;
-  }).join('');
-
-  root.innerHTML = `
-    <div style="margin-bottom:64px;">
-      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">1. 이니셜 심볼 (Initial Mark) ★ 추천</div>
-      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
-        각 브랜드 첫 글자를 원/사각 안에 담은 아이콘. 파비콘·앱 아이콘·SNS 프로필에 단독 사용 가능.
-        텍스트 CI와 페어로 세트 구성.
-      </p>
-      <div style="display:flex;flex-direction:column;gap:36px;">${initialHtml}</div>
-    </div>
-
-    <div style="margin-bottom:64px;">
-      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">2. 앵커 도트 (Anchor Dot)</div>
-      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
-        브랜드명 앞에 작은 컬러 도트 추가. 미니멀하면서 "로고"임을 인식시킴. 공식문서·서명 꼬리에 적합.
-      </p>
-      <div style="display:flex;flex-direction:column;gap:20px;">${anchorHtml}</div>
-    </div>
-
-    <div style="margin-bottom:64px;">
-      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">3. 모션 액센트 (Motion)</div>
-      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
-        브랜드명 뒤에 › chevron 추가. 모빌리티·진행·행동의 뉘앙스. 버튼·CTA 영역과 잘 어울림.
-      </p>
-      <div style="display:flex;flex-direction:column;gap:20px;">${motionHtml}</div>
-    </div>
-
-    <div style="margin-bottom:64px;">
-      <div style="font-family:'Exo 2',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">4. 브랜드 아이콘 (Brand Icon)</div>
-      <p style="font-size:12px;color:#888;line-height:1.7;margin-bottom:28px;">
-        브랜드명 뒤에 업종 상징 SVG 아이콘. carbell=정비(렌치), freepass=모빌리티(자동차), teamjpk=팀(그룹).
-        명함·홈페이지 섹션 타이틀에 톤 살리기.
-      </p>
-      <div style="display:flex;flex-direction:column;gap:20px;">${iconBrandHtml()}</div>
-    </div>
-  `;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2200);
 }
 
-// Phosphor Icons — jpkerp에서 사용 중인 아이콘 라이브러리
-const BRAND_ICONS = {
-  fp:  '<i class="ph ph-car-simple"></i>',
-  jpk: '<i class="ph ph-users-three"></i>',
-  cb:  '<i class="ph ph-wrench"></i>',
-};
-
-function iconBrandHtml() {
-  return ['fp','jpk','cb'].map(bk => {
-    const c = CI_LOGO[bk];
-    const text = bk==='fp' ? 'freepass' : bk==='jpk' ? 'teamjpk' : 'carbell';
-    const icon = BRAND_ICONS[bk];
-    const tag = bk==='fp' ? 'Mobility' : bk==='jpk' ? 'Team' : 'Auto Care';
-    return `
-      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
-        <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:${c.main};font-size:32px;line-height:1;">${text}</span>
-          <span style="color:${c.accent};font-size:28px;line-height:1;display:inline-flex;">${icon}</span>
-        </div>
-        <div style="background:${c.main};border-radius:10px;padding:28px 36px;display:flex;align-items:center;gap:14px;">
-          <span style="font-family:'Exo 2','Pretendard',sans-serif;font-weight:600;color:#fff;font-size:32px;line-height:1;">${text}</span>
-          <span style="color:${c.accent};font-size:28px;line-height:1;display:inline-flex;">${icon}</span>
-        </div>
-        <div style="font-size:11px;color:#999;letter-spacing:1px;text-transform:uppercase;">${tag}</div>
-      </div>`;
-  }).join('');
+function fitCards() {
+  document.querySelectorAll('.stage').forEach(stage => {
+    const fit = stage.querySelector('.card-fit');
+    if (!fit) return;
+    const styles = getComputedStyle(stage);
+    const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+    const avail = Math.max(0, stage.clientWidth - padX);
+    const s = Math.min(1, avail / CARD.w);
+    fit.style.setProperty('--s', String(s));
+  });
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  renderBrands();
-  renderDownloadGrid();
-  renderProposal();
-  scaleThumbs();
-  try { await document.fonts.ready; } catch(_) {}
-  scaleThumbs();
+async function withFullCardScale(fn) {
+  const fits = [...document.querySelectorAll('.card-fit')];
+  const cards = [...document.querySelectorAll('.bc, .bc-back')];
+  const prev = fits.map(f => f.style.getPropertyValue('--s'));
+  fits.forEach(f => f.style.setProperty('--s', '1'));
+  cards.forEach(c => c.classList.add('capturing'));
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  try {
+    return await fn();
+  } finally {
+    cards.forEach(c => c.classList.remove('capturing'));
+    fits.forEach((f, i) => f.style.setProperty('--s', prev[i] || '1'));
+    fitCards();
+  }
+}
+
+document.getElementById('brand-switch').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-brand]');
+  if (btn) applyBrand(btn.dataset.brand);
 });
-window.addEventListener('resize', () => scaleThumbs());
-</script>
 
+document.getElementById('i-brand').addEventListener('change', e => applyBrand(e.target.value));
+
+document.getElementById('dl-svg').addEventListener('click', () => {
+  const b = BRANDS[currentBrand];
+  const blob = new Blob([generateSvg(currentBrand)], { type:'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = `CI_${b.name}.svg`; a.href = url; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('dl-png').addEventListener('click', downloadPngWhite);
+document.getElementById('dl-pdf').addEventListener('click', downloadCiPdf);
+
+const liveMap = {
+  'i-name': ['v-name', '성함'],
+  'i-phone': ['v-phone', ''],
+  'i-email': ['v-email', ''],
+  'i-addr': ['v-addr', ''],
+};
+Object.keys(liveMap).forEach(id => {
+  document.getElementById(id).addEventListener('input', function () {
+    const fallback = liveMap[id][1] || BRANDS[currentBrand][
+      id === 'i-phone' ? 'phone' : id === 'i-email' ? 'email' : 'addr'
+    ];
+    document.getElementById(liveMap[id][0]).textContent = this.value || fallback;
+    saveDraft();
+  });
+});
+
+function syncTitleParts() {
+  const dept = document.getElementById('i-dept').value.trim();
+  const role = document.getElementById('i-role').value.trim();
+  document.getElementById('v-dept').textContent = dept;
+  document.getElementById('v-role').textContent = role;
+  document.getElementById('v-title').classList.toggle('has-both', !!(dept && role));
+  saveDraft();
+}
+document.getElementById('i-dept').addEventListener('input', syncTitleParts);
+document.getElementById('i-role').addEventListener('input', syncTitleParts);
+
+document.getElementById('i-fax').addEventListener('input', function () {
+  const v = this.value.trim();
+  document.getElementById('v-fax').textContent = v;
+  document.getElementById('row-fax').style.display = v ? 'inline-flex' : 'none';
+  saveDraft();
+});
+
+async function captureCard(el, scale, bg, bleed = 0) {
+  return html2canvas(el, {
+    scale, useCORS:true, logging:false, backgroundColor:bg,
+    width: CARD.w + bleed * 2, height: CARD.h + bleed * 2
+  });
+}
+
+/* 도련 캡처 — 카드 박스를 사방 bleed 만큼 키우고 안쪽 여백도 같이 늘린다.
+   내용물은 재단선 기준 제자리에 남고 배경만 바깥으로 뻗는다. */
+async function withBleed(el, bleed, fn) {
+  const fit = el.closest('.card-fit');
+  const stage = el.closest('.stage');
+  const prev = {
+    fitW: fit ? fit.style.width : '',
+    fitH: fit ? fit.style.height : '',
+    ov: stage ? stage.style.overflow : '',
+  };
+  el.style.setProperty('--bleed', bleed + 'px');
+  if (fit) {
+    fit.style.width = (CARD.w + bleed * 2) + 'px';
+    fit.style.height = (CARD.h + bleed * 2) + 'px';
+  }
+  if (stage) stage.style.overflow = 'visible';
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  try {
+    return await fn();
+  } finally {
+    el.style.removeProperty('--bleed');
+    if (fit) { fit.style.width = prev.fitW; fit.style.height = prev.fitH; }
+    if (stage) stage.style.overflow = prev.ov;
+  }
+}
+
+/** 공유용 PNG — 그림자만 살릴 최소 여백 (흰 바탕) */
+function liftCardCanvas(cardCanvas, scale) {
+  const pad = Math.round(2 * scale);
+  const out = document.createElement('canvas');
+  out.width = cardCanvas.width + pad * 2;
+  out.height = cardCanvas.height + pad * 2;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.shadowColor = 'rgba(18, 20, 26, 0.13)';
+  ctx.shadowBlur = 1.75 * scale;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0.6 * scale;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(pad, pad, cardCanvas.width, cardCanvas.height);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.drawImage(cardCanvas, pad, pad);
+  return out;
+}
+
+async function dlPNG(isBack) {
+  await document.fonts.ready;
+  const name = document.getElementById('i-name').value || '성함';
+  const b = BRANDS[currentBrand];
+  const scale = 3;
+  await withFullCardScale(async () => {
+    const captured = await captureCard(
+      document.getElementById(isBack ? 'back-card' : 'front-card'),
+      scale,
+      isBack ? '#0D0D0F' : '#ffffff'
+    );
+    const out = liftCardCanvas(captured, scale);
+    const a = document.createElement('a');
+    a.download = `${b.name}_${isBack ? '뒷면' : '앞면'}_${name}.png`;
+    a.href = out.toDataURL('image/png');
+    a.click();
+  });
+  showToast(`${isBack ? '뒷면' : '앞면'} PNG 저장`);
+}
+
+document.getElementById('btn-front').addEventListener('click', () => dlPNG(false));
+document.getElementById('btn-back').addEventListener('click', () => dlPNG(true));
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  DRAFT_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dispatchEvent(new Event('input'));
+  });
+  applyBrand(currentBrand);
+  saveDraft();
+  showToast('명함 입력을 초기화했습니다');
+});
+
+document.getElementById('btn-pdf').addEventListener('click', async () => {
+  await document.fonts.ready;
+  const name = document.getElementById('i-name').value || '성함';
+  const b = BRANDS[currentBrand];
+  const { jsPDF } = window.jspdf;
+  // 재단 90×50 + 도련 2 + 재단선까지의 간격 2 + 재단선 길이 5
+  const CW = CARD.mmW, CH = CARD.mmH, BL = CARD.mmBleed;
+  const gap = 2, lineLen = 5, margin = BL + gap + lineLen;
+  const PW = CW + margin * 2, PH = CH + margin * 2;
+  const ox = margin, oy = margin;   // 재단선 좌상단
+  const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:[PW, PH] });
+  function crop(pdf) {
+    pdf.setDrawColor(255, 0, 0);
+    pdf.setLineWidth(0.1);
+    [[ox, oy], [ox+CW, oy], [ox, oy+CH], [ox+CW, oy+CH]].forEach(([cx, cy]) => {
+      const dx = cx === ox ? -1 : 1;
+      const dy = cy === oy ? -1 : 1;
+      pdf.line(cx + dx*gap, cy, cx + dx*(gap+lineLen), cy);
+      pdf.line(cx, cy + dy*gap, cx, cy + dy*(gap+lineLen));
+    });
+  }
+  showToast('PDF 생성 중...');
+  await withFullCardScale(async () => {
+    const frontEl = document.getElementById('front-card');
+    const front = await withBleed(frontEl, BLEED_PX, () => captureCard(frontEl, 15, '#ffffff', BLEED_PX));
+    pdf.addImage(front.toDataURL('image/png'), 'PNG', ox - BL, oy - BL, CW + BL * 2, CH + BL * 2, undefined, 'NONE');
+    crop(pdf);
+    pdf.addPage([PW, PH], 'landscape');
+    const backEl = document.getElementById('back-card');
+    const back = await withBleed(backEl, BLEED_PX, () => captureCard(backEl, 15, '#0D0D0F', BLEED_PX));
+    pdf.addImage(back.toDataURL('image/png'), 'PNG', ox - BL, oy - BL, CW + BL * 2, CH + BL * 2, undefined, 'NONE');
+    crop(pdf);
+    pdf.save(`${b.name}_명함_${name}.pdf`);
+  });
+  showToast('PDF 저장 완료');
+});
+
+const draft = loadDraft();
+applyBrand((draft && BRANDS[draft.brand]) ? draft.brand : 'jpk');
+if (draft && draft.fields) applyDraftFields(draft.fields);
+draftReady = true;
+saveDraft();
+fitCards();
+// 폰트가 늦게 붙으면 잉크 실측이 0으로 나오므로 로딩 후 로고를 한 번 다시 그린다
+document.fonts.ready.then(() => {
+  const b = BRANDS[currentBrand];
+  setFrontLogo(b);
+  setBackLogo(b);
+});
+window.addEventListener('resize', fitCards);
+requestAnimationFrame(fitCards);
+</script>
 </body>
 </html>
