@@ -1,0 +1,49 @@
+{
+  "brand": "뮤카패스 · 뮤카 모빌리티",
+  "version": "v015",
+  "createdAt": "2026-10-15",
+  "registeredAt": "2026-11-07",
+  "approval": "대표가 기존 이미지 확인 후 CI 센터 등록 지시",
+  "files": [
+    {
+      "name": "mewcar-family-v015-20261015.png",
+      "sha256": "1a4daedea40ae2e2106b85287f1ba8cdc03953524f116ebe5f9c789abedab94c"
+    },
+    {
+      "name": "mewcar-family-v015-20261015.svg",
+      "sha256": "7e19890f9d0e63e0f67f869638f2d2d2cb3139ed5587f4d966428f8452c9f219"
+    },
+    {
+      "name": "mewcar-pass-en-v015-20261015.png",
+      "sha256": "dc5cbe8feac523f9c6c63f17688ab0e438b3301ab69c104ccfd9f351c3b476af"
+    },
+    {
+      "name": "mewcar-pass-en-v015-20261015.svg",
+      "sha256": "2aac314b77672a15144a089cf4c827490a7c5e6b8535d24a65f1214d53baf658"
+    },
+    {
+      "name": "mewcar-mobility-en-v015-20261015.png",
+      "sha256": "a95cb4669c525e511b6fe05a87a094a9f855c0deccda1992c52b01148683ce19"
+    },
+    {
+      "name": "mewcar-mobility-en-v015-20261015.svg",
+      "sha256": "1f5bdcea9640592be74be255ec672aeb93b3386ff3c410832108ccbe250a6fb1"
+    },
+    {
+      "name": "mewcar-pass-ko-v015-20261015.png",
+      "sha256": "1583f18b6f5bc21cb77d1b577c9e301c1fd6da7b3105b3b9789ee34e01aef3ef"
+    },
+    {
+      "name": "mewcar-pass-ko-v015-20261015.svg",
+      "sha256": "cd84ced3066e8eac74954ed0e0a366b6c1617fc311385983c6889382a95d4142"
+    },
+    {
+      "name": "mewcar-mobility-ko-v015-20261015.png",
+      "sha256": "46a621daafdcad4843b17aa14daf32587da2e0b9a298cdad1c0e1fc7ee8a6205"
+    },
+    {
+      "name": "mewcar-mobility-ko-v015-20261015.svg",
+      "sha256": "7510f32c7269de0467801fbf45f511e05dcf5f7564d1d692d58696505e623c28"
+    }
+  ]
+}
