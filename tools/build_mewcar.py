@@ -44,9 +44,13 @@ def symbol(fg=TEAL, inner="#FFFFFF"):
     l, t, r, b = bounds_of(T["mew"])
     km = (MEW_BOX[3] - MEW_BOX[1]) / (b - t)
     cx = (MEW_BOX[0] + MEW_BOX[2]) / 2
-    return (f'<rect x="0" y="0" width="{BOX_W}" height="{IMG_H}" fill="{fg}"/>'
-            f'<path fill="{inner}" transform="matrix({km:.6f} 0 0 {km:.6f} {cx - (l + r) / 2 * km:.4f} {MEW_BOX[1] - t * km:.4f})" d="{T["mew"]}"/>'
-            f'<rect x="{BAR[0]}" y="{BAR[1]}" width="{BAR[2] - BAR[0]}" height="{BAR[3] - BAR[1]}" fill="{inner}"/>')
+    mew = (f'<path transform="matrix({km:.6f} 0 0 {km:.6f} {cx - (l + r) / 2 * km:.4f} {MEW_BOX[1] - t * km:.4f})" d="{T["mew"]}"/>'
+           f'<rect x="{BAR[0]}" y="{BAR[1]}" width="{BAR[2] - BAR[0]}" height="{BAR[3] - BAR[1]}"/>')
+    if inner in (None, "none"):   # 한 색판: 상자에서 mew·밑줄을 뚫는다(바탕이 비쳐 보인다)
+        return (f'<mask id="mewcut"><rect x="0" y="0" width="{BOX_W}" height="{IMG_H}" fill="#fff"/><g fill="#000">{mew}</g></mask>'
+                f'<rect x="0" y="0" width="{BOX_W}" height="{IMG_H}" fill="{fg}" mask="url(#mewcut)"/>')
+    return f'<rect x="0" y="0" width="{BOX_W}" height="{IMG_H}" fill="{fg}"/><g fill="{inner}">{mew}</g>'
+
 
 
 def mewka_left():
@@ -105,7 +109,7 @@ def lockup(name, fg=TEAL, inner="#FFFFFF", bg=None):
 ORDER = ["pass-en", "mobility-en", "pass-ko", "mobility-ko"]
 # 색: 기본(청록) · 청록 바탕(흰 글자, 상자 안 mew 는 청록) · 검정 바탕 · 흰색 한 가지 · 검정 한 가지
 COLORWAYS = {"": (TEAL, "#FFFFFF", None), "-on-teal": ("#FFFFFF", TEAL, TEAL), "-on-dark": (TEAL, "#FFFFFF", "#0E1416"),
-             "-white": ("#FFFFFF", None, None), "-black": ("#111111", "#FFFFFF", None)}
+             "-white": ("#FFFFFF", None, None), "-black": ("#111111", None, None)}   # 흰·검정 한 색판은 mew 를 뚫는다
 
 
 def ci_only(fg=TEAL, bg=None):
