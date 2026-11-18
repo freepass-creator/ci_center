@@ -102,7 +102,7 @@ def lockup(name, fg=TEAL, inner="#FFFFFF", bg=None):
     W, Hh = right + 40, v["vb"][3]
     back = f'<rect width="{W:.3f}" height="{Hh}" fill="{bg}"/>' if bg else ""
     label = {"pass-ko": "뮤카패스", "mobility-ko": "뮤카모빌리티", "pass-en": "뮤카pass", "mobility-en": "뮤카mobility"}[name]
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.3f} {Hh}" role="img" aria-label="{label}">'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.3f} {Hh}" width="{W:.3f}" height="{Hh}" role="img" aria-label="{label}">'
             f'<title>{label} {VER}</title>{back}<g transform="translate(40 40)">{symbol(fg, inner)}{mewka(fg)}{suffix}</g></svg>'), W
 
 
@@ -118,7 +118,7 @@ def ci_only(fg=TEAL, bg=None):
     x0, y0, x1, y1 = (l - bx0) * k, (t - by0) * k, (r - bx0) * k, (b - by0) * k
     pad = 0.2 * IMG_H; W, H = x1 - x0 + 2 * pad, y1 - y0 + 2 * pad
     back = f'<rect width="{W:.3f}" height="{H:.3f}" fill="{bg}"/>' if bg else ""
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.3f} {H:.3f}" role="img" aria-label="뮤카"><title>뮤카 CI {VER}</title>'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W:.3f} {H:.3f}" width="{W:.3f}" height="{H:.3f}" role="img" aria-label="뮤카"><title>뮤카 CI {VER}</title>'
             f'{back}<g transform="translate({pad - x0:.3f} {pad - y0:.3f})">{mewka(fg)}</g></svg>')
 
 if __name__ == "__main__":
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         svg, w = lockup(n); wmax = max(wmax, w)
         inner_svg = re.search(r'<title>.*?</title>(.*)</svg>', svg, re.S).group(1)
         parts.append(f'<g transform="translate(10 {205 * i})">{inner_svg}</g>')
-    fam = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {wmax + 20:.3f} 840"><title>뮤카 CI 모음 {VER}</title>'
+    fam = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {wmax + 20:.3f} 840" width="{wmax + 20:.3f}" height="840"><title>뮤카 CI 모음 {VER}</title>'
            f'<rect width="100%" height="100%" fill="white"/>{"".join(parts)}</svg>')
     (OUT / f"mewcar-family-{VER}-{DATE}.svg").write_text(fam, encoding="utf-8"); made.append(f"mewcar-family-{VER}-{DATE}.svg")
     print(len(made), "개 →", OUT)
